@@ -177,13 +177,12 @@ export default ComponentPage;
 const ComponentFigmaProps = ({ componentData, fileKey }) => {
   const [variantData, setVariantData] = useState();
 
-  let figmaKey = "figd_LpYRzrZ9dcXQr_UxQvqFUuLNCS1OPOWEaYXu9qZ0";
   const { data, error } = useSWR([
     "https://api.figma.com/v1/files/" + fileKey.data[0].figma_file_key,
     {
       method: "GET",
       headers: {
-        "X-Figma-Token": figmaKey,
+        "X-Figma-Token": process.env.NEXT_PUBLIC_FIGMA_TOKEN,
       },
     },
   ]);

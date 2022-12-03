@@ -111,7 +111,6 @@ const TabFigma = ({ data: fileKey, componentData }) => {
   const [rowSelection, setRowSelection] = useState({});
   const [selectedComponents, setSelectedComponents] = useState([]);
 
-  let figmaKey = "figd_LpYRzrZ9dcXQr_UxQvqFUuLNCS1OPOWEaYXu9qZ0";
   const { data: figmaComponentsAPI, error: figmaComponentsAPIError } = useSWR(
     [
       "https://api.figma.com/v1/files/" +
@@ -120,7 +119,7 @@ const TabFigma = ({ data: fileKey, componentData }) => {
       {
         method: "GET",
         headers: {
-          "X-Figma-Token": figmaKey,
+          "X-Figma-Token": process.env.NEXT_PUBLIC_FIGMA_TOKEN,
         },
       },
     ],
@@ -133,7 +132,7 @@ const TabFigma = ({ data: fileKey, componentData }) => {
       {
         method: "GET",
         headers: {
-          "X-Figma-Token": figmaKey,
+          "X-Figma-Token": process.env.NEXT_PUBLIC_FIGMA_TOKEN,
         },
       },
     ],
