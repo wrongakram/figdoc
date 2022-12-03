@@ -1,0 +1,101 @@
+// stitches.config.ts
+import { createStitches } from "@stitches/react";
+import {
+  gray,
+  blue,
+  green,
+  violet,
+  orange,
+  pink,
+  yellow,
+  red,
+  grayDark,
+  blueDark,
+  greenDark,
+  violetDark,
+  orangeDark,
+  pinkDark,
+  yellowDark,
+  redDark,
+} from "@radix-ui/colors";
+
+export const {
+  styled,
+  css,
+  globalCss,
+  keyframes,
+  getCssText,
+  theme,
+  createTheme,
+  config,
+} = createStitches({
+  theme: {
+    colors: {
+      ...gray,
+      ...blue,
+      ...green,
+      ...pink,
+      ...yellow,
+      ...orange,
+      ...violet,
+      ...red,
+    },
+    space: {
+      1: "4px",
+      2: "8px",
+      3: "12px",
+      4: "16px",
+      5: "20px",
+      6: "24px",
+      7: "32px",
+      8: "36px",
+      9: "40px",
+      10: "44px",
+    },
+    fontSizes: {
+      1: "12px",
+      2: "14px",
+      3: "16px",
+      4: "20px",
+      5: "24px",
+      6: "28px",
+      7: "32px",
+      8: "36px",
+      9: "40px",
+      10: "52px",
+    },
+    fonts: {
+      untitled: "Untitled Sans, apple-system, sans-serif",
+      mono: "Söhne Mono, menlo, monospace",
+    },
+    fontWeights: {},
+    lineHeights: {},
+    letterSpacings: {},
+    sizes: {},
+    borderWidths: {},
+    borderStyles: {},
+    radii: {},
+    shadows: {},
+    zIndices: {},
+    transitions: {},
+  },
+  media: {
+    bp1: "(min-width: 480px)",
+  },
+  utils: {
+    marginX: (value: any) => ({ marginLeft: value, marginRight: value }),
+  },
+});
+
+export const darkTheme = createTheme("dark-theme", {
+  colors: {
+    ...grayDark,
+    ...blueDark,
+    ...greenDark,
+    ...violetDark,
+    ...orangeDark,
+    ...pinkDark,
+    ...yellowDark,
+    ...redDark,
+  },
+});
