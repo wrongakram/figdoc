@@ -50,22 +50,17 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   // Get All the components from the database
   const { data } = await supabase
-    .from("component")
-    .select("*")
-    .filter("design_system", "eq", ctx.params?.system);
-
-  // Get design system information
-  const designSystemData = await supabase
     .from("design_system")
     .select("*")
-    .filter("id", "eq", ctx.params?.system);
+    .filter("id", "eq", ctx.params?.system)
+    .select("*, component (*)")
+    .single();
 
   return {
     props: {
       initialSession: session,
       user: session.user,
       data: data ?? [],
-      designSystem: designSystemData ?? {},
     },
   };
 };
@@ -86,14 +81,14 @@ const DesignSystemPage = ({ data, designSystem }: any) => {
         <Button>Import</Button>
       </PageHeader>
 
-      <TabFigma data={designSystem} componentData={data} />
+      <TabFigma data={data} />
     </Page>
   );
 };
 
 export default DesignSystemPage;
 
-const TabFigma = ({ data: fileKey, componentData }) => {
+const TabFigma = ({ data }) => {
   const supabaseClient = useSupabaseClient();
   const user = useUser();
   const router = useRouter();
@@ -113,9 +108,7 @@ const TabFigma = ({ data: fileKey, componentData }) => {
 
   const { data: figmaComponentsAPI, error: figmaComponentsAPIError } = useSWR(
     [
-      "https://api.figma.com/v1/files/" +
-        fileKey.data[0].figma_file_key +
-        "/components",
+      "https://api.figma.com/v1/files/" + data.figma_file_key + "/components",
       {
         method: "GET",
         headers: {
@@ -128,7 +121,7 @@ const TabFigma = ({ data: fileKey, componentData }) => {
 
   const { data: figmaFileAPI, error: figmaFileAPIError } = useSWR(
     [
-      "https://api.figma.com/v1/files/" + fileKey.data[0].figma_file_key,
+      "https://api.figma.com/v1/files/" + data.figma_file_key,
       {
         method: "GET",
         headers: {
@@ -148,7 +141,7 @@ const TabFigma = ({ data: fileKey, componentData }) => {
 
       let unSyncedComponents = _.differenceBy(
         componentsFromFigma,
-        componentData,
+        data.component,
         "nodeId"
       );
 
@@ -161,7 +154,7 @@ const TabFigma = ({ data: fileKey, componentData }) => {
             }
           );
 
-          let figmaURL = `https://www.figma.com/embed?embed_host=astra&url=https://www.figma.com/file/${fileKey.data[0].figma_file_key}/${figmaFileAPI.name}?node-id=${component.nodeId}`;
+          let figmaURL = `https://www.figma.com/embed?embed_host=astra&url=https://www.figma.com/file/${data.figma_file_key}/${figmaFileAPI.name}?node-id=${component.nodeId}`;
           return {
             ...component,
             figma_url: figmaURL.replace(/\s/g, "-"),
@@ -172,7 +165,7 @@ const TabFigma = ({ data: fileKey, componentData }) => {
         })
       );
     }
-  }, [figmaComponentsAPI, figmaFileAPI, componentData]);
+  }, [figmaComponentsAPI, figmaFileAPI, data]);
 
   useEffect(() => {
     let filterSelectedComponents = _.keys(rowSelection).map((id) => {
@@ -229,7 +222,7 @@ const TabFigma = ({ data: fileKey, componentData }) => {
 
   return (
     <div>
-      {fileKey.data[0].figma_file_key === null ? (
+      {data.figma_file_key === null ? (
         <p>No figma file key specified... add one now :)</p>
       ) : parentComponents.length ? (
         <>
@@ -247,7 +240,7 @@ const TabFigma = ({ data: fileKey, componentData }) => {
                 <small>
                   <pre>{JSON.stringify(parentComponents, null, 2)}</pre>
                   <hr />
-                  <pre>{JSON.stringify(componentData, null, 2)}</pre>
+                  <pre>{JSON.stringify(data.component, null, 2)}</pre>
                 </small>
               </>
             </Flex>

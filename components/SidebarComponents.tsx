@@ -337,7 +337,14 @@ const SidebarComponents = ({ designSystemName }) => {
                 active={path === `/design-system/${system}/figmaSync`}
               >
                 Figma Sync
-                {/* <OpenNewWindow width={14} /> */}
+              </NavMenuLink>
+            </NavMenuItem>
+            <NavMenuItem>
+              <NavMenuLink
+                href={`/design-system/${system}/members`}
+                active={path === `/design-system/${system}/members`}
+              >
+                Members
               </NavMenuLink>
             </NavMenuItem>
           </NavMenuList>

@@ -1,8 +1,8 @@
 import React from "react";
 import { styled, keyframes } from "../stitches.config";
 
-const Spinner = () => {
-  return <Spin />;
+const Spinner = ({ color }) => {
+  return <Spin color={color} />;
 };
 
 export default Spinner;
@@ -21,4 +21,13 @@ const Spin = styled("span", {
   display: "inline-block",
   boxSizing: "border-box",
   animation: `${rotation} 1s linear infinite`,
+
+  variants: {
+    color: {
+      black: {
+        border: "2.5px solid $gray11",
+        borderBottomColor: "transparent",
+      },
+    },
+  },
 });

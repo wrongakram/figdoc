@@ -1,4 +1,4 @@
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 import {
   Svg3DSelectFace,
   Lock,
@@ -7,7 +7,7 @@ import {
 } from "iconoir-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useSWRConfig } from "swr";
 import { styled } from "../stitches.config";
 
@@ -164,7 +164,7 @@ export const FDDesignSystemCards = ({ system }: { system: DesignSystem }) => {
           <Lock width={14} /> Private
         </div>
       </div>
-      <DesignSystemCardDropdown id={system.id}>
+      <DesignSystemCardDropdown id={system.id} owner={system.created_by}>
         <IconButton>
           <MoreHoriz width={18} />
         </IconButton>
@@ -190,7 +190,10 @@ const IconButton = styled("button", {
   "&:focus": { boxShadow: `0 0 0 2px black` },
 });
 
-const DesignSystemCardDropdown = ({ children, id }) => {
+const DesignSystemCardDropdown = ({ children, id, owner }) => {
+  const user = useUser();
+  const [admin, setAdmin] = useState();
+
   const router = useRouter();
   const supabaseClient = useSupabaseClient();
   const { mutate } = useSWRConfig();
@@ -214,16 +217,28 @@ const DesignSystemCardDropdown = ({ children, id }) => {
       console.log(error);
     }
   };
+
+  useEffect(() => {
+    if (owner == user.id) {
+      setAdmin(true);
+    }
+  }, [owner, user]);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
       <DropdownMenuContent size="md" collisionPadding={{ right: 24 }}>
-        <DropdownMenuItem>Edit</DropdownMenuItem>
+        {admin && <DropdownMenuItem>Edit</DropdownMenuItem>}
+
         <DropdownMenuItem>Go to Figma</DropdownMenuItem>
-        <DropdownMenuSeparator></DropdownMenuSeparator>
-        <DropdownMenuItem onClick={DELETE_DESIGN_SYSTEM} destructive>
-          Delete
-        </DropdownMenuItem>
+        {admin && (
+          <>
+            <DropdownMenuSeparator></DropdownMenuSeparator>
+            <DropdownMenuItem onClick={DELETE_DESIGN_SYSTEM} destructive>
+              Delete
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

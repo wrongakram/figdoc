@@ -3,7 +3,7 @@ import { GetServerSidePropsContext } from "next";
 
 // Context
 import ToastContext from "../context/ToastContext";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 
 // Supabase
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
@@ -23,9 +23,11 @@ import {
 import CreateNewDesignSystemDialog from "../components/Modals/CreateDesignSystem";
 
 // Icons
-import { Plus } from "iconoir-react";
+import { Plus, Svg3DSelectFace } from "iconoir-react";
 import { FDDesignSystemCards } from "../components/FDCards";
 import { styled } from "../stitches.config";
+import _ from "lodash";
+import Spinner from "../components/Spinner";
 
 // This gets called on every request
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
@@ -57,6 +59,26 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 };
 
 const Home = ({ user, data }: { data: DesignSystemData }) => {
+  const [myDesignSystems, setMyDesignSystem] = useState([]);
+  const [sharedWithMeDesignSystems, setSharedWithMeDesignSystems] = useState(
+    []
+  );
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let my = _.filter(data, function (o) {
+      return o.created_by === user.id;
+    });
+
+    let shared = _.filter(data, function (o) {
+      return o.created_by !== user.id;
+    });
+
+    setMyDesignSystem(my);
+    setSharedWithMeDesignSystems(shared);
+    setLoading(false);
+  }, [data, user]);
+
   const context = useContext(ToastContext);
   return (
     <Page>
@@ -76,12 +98,58 @@ const Home = ({ user, data }: { data: DesignSystemData }) => {
         </CreateNewDesignSystemDialog>
       </PageHeader>
       <div>
-        <Heading3>My Design Systems</Heading3>
-        <PageGrid>
-          {data.map((system) => (
-            <FDDesignSystemCards key={system.id} system={system} />
-          ))}
-        </PageGrid>
+        {loading ? (
+          <EmptyState>
+            <Spinner color="black" />
+          </EmptyState>
+        ) : (
+          <>
+            {myDesignSystems.length != 0 ? (
+              <>
+                <Heading3>My Design Systems</Heading3>
+                <PageGrid>
+                  {myDesignSystems.map((system) => (
+                    <FDDesignSystemCards key={system.id} system={system} />
+                  ))}
+                </PageGrid>
+              </>
+            ) : myDesignSystems.length == 0 &&
+              sharedWithMeDesignSystems.length >= 1 ? null : (
+              <EmptyState>
+                <div className="svg-container">
+                  <Svg3DSelectFace />
+                </div>
+                <h3>Looks like you don't have any Design Systems</h3>
+                <p>
+                  You can create a new Design System by clicking the{" "}
+                  <CreateNewDesignSystemDialog>
+                    <span>+ Create</span>
+                  </CreateNewDesignSystemDialog>{" "}
+                  button.
+                </p>
+              </EmptyState>
+            )}
+          </>
+        )}
+
+        {sharedWithMeDesignSystems.length != 0 && (
+          <>
+            {loading ? (
+              <EmptyState>
+                <Spinner color="black" />
+              </EmptyState>
+            ) : (
+              <>
+                <Heading3>Shared with me</Heading3>
+                <PageGrid>
+                  {sharedWithMeDesignSystems.map((system) => (
+                    <FDDesignSystemCards key={system.id} system={system} />
+                  ))}
+                </PageGrid>
+              </>
+            )}
+          </>
+        )}
       </div>
     </Page>
   );
@@ -110,3 +178,60 @@ const BetaLabel = styled("div", {
 });
 
 export default Home;
+
+const EmptyState = styled("div", {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  textAlign: "center",
+  width: 560,
+  height: 320,
+  margin: "0 auto",
+
+  ".svg-container": {
+    background: "$gray3",
+    display: "flex",
+    alignCenter: "center",
+    justifyContent: "center",
+    padding: 16,
+    borderRadius: 16,
+    svg: {
+      width: 28,
+      height: 28,
+      color: "$gray500",
+    },
+  },
+  h3: {
+    fontSize: "$5",
+    fontWeight: 600,
+    color: "$gray12",
+    marginTop: "$4",
+  },
+
+  p: {
+    fontSize: "$3",
+    color: "$gray11",
+    marginTop: "$2",
+    span: {
+      cursor: "pointer",
+      color: "$gray12",
+      fontWeight: 500,
+      padding: 4,
+      borderRadius: 6,
+      "&:hover": {
+        background: "$gray3",
+      },
+    },
+    a: {
+      cursor: "pointer",
+      color: "$blue11",
+      fontWeight: 500,
+      padding: 4,
+      borderRadius: 6,
+      "&:hover": {
+        background: "$blue3",
+      },
+    },
+  },
+});

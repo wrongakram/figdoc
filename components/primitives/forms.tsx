@@ -39,6 +39,7 @@ export const Textarea = styled("textarea", {
   color: "$gray12",
   backgroundColor: "$gray4",
   boxSizing: "border-box",
+  minHeight: 72,
 
   "&::placeholder": {
     color: "$gray10",

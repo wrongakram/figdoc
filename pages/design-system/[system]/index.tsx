@@ -49,18 +49,11 @@ export const getServerSideProps: GetServerSideProps = async (
       },
     };
 
-  // Get all components from [x] design system
   const { data } = await supabase
-    .from("component")
-    .select("*")
-    .filter("design_system", "eq", ctx.params?.system);
-
-  // Get design system details
-  const designSystemData = await supabase
     .from("design_system")
     .select("*")
     .filter("id", "eq", ctx.params?.system)
-    .limit(1)
+    .select("*, component (*)")
     .single();
 
   return {
@@ -68,7 +61,6 @@ export const getServerSideProps: GetServerSideProps = async (
       initialSession: session,
       user: session.user,
       data: data,
-      designSystem: designSystemData,
     },
   };
 };
@@ -84,24 +76,8 @@ type Component = {
   design_system: string;
   documentation: string[];
   thumbnail_url: string | null;
-  nodeId: string;
+  nodeId: string | null;
 }[];
-
-type DesignSystem = {
-  error: string | null;
-  data: {
-    id: string;
-    created_at: string;
-    title: string;
-    created_by: string;
-    description: string | null;
-    figma_file_key: string;
-    theme: string;
-  };
-  count: string | null;
-  status: number;
-  statusText: string;
-};
 
 export type DesignSystemData = {
   id: string;
@@ -111,22 +87,18 @@ export type DesignSystemData = {
   description: string | null;
   figma_file_key: string;
   theme: string;
+  component: Component[];
 };
 
-type DesignSystemProps = {
-  data: Component;
-  designSystem: DesignSystem;
-};
-
-const DesignSystemPage = ({ data, designSystem }: DesignSystemProps) => {
+const DesignSystemPage = ({ data }: DesignSystemData) => {
   const router = useRouter();
   const { system } = router.query;
   return (
     <Page>
       <PageHeader>
         <div>
-          <PageTitle>{designSystem.data.title}</PageTitle>
-          <PageDescription>{designSystem.data.description}</PageDescription>
+          <PageTitle>{data.title}</PageTitle>
+          <PageDescription>{data.description}</PageDescription>
         </div>
         <CreateComponent>
           <Button>
@@ -135,7 +107,7 @@ const DesignSystemPage = ({ data, designSystem }: DesignSystemProps) => {
         </CreateComponent>
       </PageHeader>
 
-      {data.length === 0 ? (
+      {data.component.length === 0 ? (
         <EmptyState>
           <div className="svg-container">
             <Puzzle />
@@ -152,7 +124,7 @@ const DesignSystemPage = ({ data, designSystem }: DesignSystemProps) => {
         </EmptyState>
       ) : (
         <PageGrid>
-          {data.map((component) => (
+          {data.component.map((component) => (
             <ComponentCard
               href={{
                 pathname: `/design-system/${system}/component/${component?.id}`,
@@ -160,7 +132,7 @@ const DesignSystemPage = ({ data, designSystem }: DesignSystemProps) => {
               key={component.id}
             >
               <ComponentCoverImage
-                fileKey={designSystem}
+                fileKey={data.figma_file_key}
                 nodeId={component.nodeId}
               />
               {component.nodeId && <FigmaTag>Figma Component</FigmaTag>}
@@ -172,6 +144,7 @@ const DesignSystemPage = ({ data, designSystem }: DesignSystemProps) => {
           ))}
         </PageGrid>
       )}
+      <pre> {JSON.stringify(data, null, 2)}</pre>
     </Page>
   );
 };
@@ -247,9 +220,7 @@ const ComponentCoverImage = ({ fileKey, nodeId }: any) => {
   const [allComponentThumbnails, setAllComponentThumbnails] = useState("");
 
   const { data, error } = useSWR([
-    "https://api.figma.com/v1/files/" +
-      fileKey.data.figma_file_key +
-      "/components",
+    "https://api.figma.com/v1/files/" + fileKey + "/components",
     {
       method: "GET",
       headers: {
