@@ -71,6 +71,7 @@ const CreateNewDesignSystemDialog = ({ children }: any) => {
             title: designSystemData.title,
             description: designSystemData.description,
             created_by: user?.id,
+            created_by_email: user?.email,
             figma_file_key: designSystemData.figma_file_key,
             theme: designSystemData.theme,
           },

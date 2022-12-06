@@ -25,6 +25,23 @@ const Profile = ({ children }: any) => {
     router.push("/");
   }
 
+  const DELETE_ACCOUNT = async () => {
+    try {
+      // const { error } = await supabaseClient.auth.signOut();
+
+      const { error } = await fetch("http://localhost:3000/api/deleteUser", {
+        method: "POST",
+        headers: new Headers({ "Content-Type": "application/json" }),
+        credentials: "same-origin",
+        body: JSON.stringify({ id: user?.id }),
+      });
+
+      // if (error) throw error;
+    } catch (error: any) {
+      console.log(error);
+    }
+  };
+
   const initialState = {
     title: "",
     description: "",
@@ -107,7 +124,7 @@ const Profile = ({ children }: any) => {
               <Paragraph css={{ padding: "4px 0 12px 0" }}>
                 Once any of the changes below are made we cannot undo them.
               </Paragraph>
-              <Button danger onClick={() => {}}>
+              <Button danger onClick={DELETE_ACCOUNT}>
                 Delete account
               </Button>
             </div>

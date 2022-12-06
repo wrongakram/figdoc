@@ -24,8 +24,8 @@ const Login = () => {
           appearance={{ theme: ThemeSupa }}
           supabaseClient={supabaseClient}
           providers={["google"]}
-          redirectTo="http://localhost:3000/"
-          onlyThirdPartyProviders
+          magicLink
+          redirectTo="/"
         />
       </LoginContainer>
     </LoginPage>

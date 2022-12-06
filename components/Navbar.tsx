@@ -55,16 +55,16 @@ const ComponentDropdown = ({ children }) => {
   );
 };
 
-const Navbar = ({ data, designSystem }: any) => {
+const Navbar = ({ data }: any) => {
   return (
     <NavContainer>
       <Breadcrumb>
-        <BreadcrumbItem href={`/design-system/${designSystem.data[0].id}`}>
-          {designSystem.data[0].title}
+        <BreadcrumbItem href={`/design-system/${data.id}`}>
+          {data.title}
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem active href="/">
-          {data.title}
+          {data.component[0].title}
         </BreadcrumbItem>
       </Breadcrumb>
 

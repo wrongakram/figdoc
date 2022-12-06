@@ -60,7 +60,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     props: {
       initialSession: session,
       user: session.user,
-      data: data ?? [],
+      data: data,
     },
   };
 };

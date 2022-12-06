@@ -36,62 +36,54 @@ import FigmaPopoverGuide from "../FigmaPopoverGuide";
 import { Button } from "../FDButton";
 import FDSystemIcon from "../FDSystemIcon";
 
-const InviteMembersDialog = ({ children, title, theme }: any) => {
+const ViewInvitesDialog = ({ children, data }: any) => {
+  const supabaseClient = useSupabaseClient();
   const user = useUser();
   const router = useRouter();
   const context = useContext(ToastContext);
-  const { system } = router.query;
-  const supabaseClient = useSupabaseClient();
 
   const { mutate } = useSWRConfig();
 
-  const initialState = {
-    email: "",
-  };
-
-  const [memberData, setMemberData] = useState(initialState);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = React.useState(false);
 
-  const handleChange = (e: any) => {
-    setMemberData({ ...memberData, [e.target.id]: e.target.value });
+  const DECLINE_DESIGN_SYSTEM = async (system) => {
+    try {
+      await supabaseClient.from("invites").delete().eq("id", system.id);
+
+      setOpen(false);
+      // context.setCreateDesignSystemToast(true);
+      if (error) throw error;
+    } catch (error: any) {
+      console.log(error);
+    }
   };
 
-  const createDesignSystem = async (event) => {
-    event.preventDefault();
-    setLoading(true);
-
+  const JOIN_DESIGN_SYSTEM = async (system) => {
     try {
-      // Login to profile and send user an email
-
-      const { data, error } = await supabaseClient.from("invites").insert([
-        {
-          design_system_id: system,
-          invited_by: user?.email,
-          invitee: memberData.email,
-          designSystemDetail: {
-            title: title,
-            theme: theme,
+      const { data, error } = await supabaseClient
+        .from("members")
+        .insert([
+          {
+            design_system_id: system.design_system_id,
+            user_id: user?.id,
+            email: system.invitee,
           },
-        },
-      ]);
+        ])
+        .select();
 
-      // const { data: user, error } = await fetch(
-      //   "http://localhost:3000/api/inviteUser",
-      //   {
-      //     method: "POST",
-      //     headers: new Headers({ "Content-Type": "application/json" }),
-      //     credentials: "same-origin",
-      //     body: JSON.stringify({ email: memberData.email }),
-      //   }
-      // );
+      if (data) {
+        mutate(`http://localhost:3000/api/design-systems/getAllDesignSystems`);
+        router.push(`/design-system/${data[0].design_system_id}`);
+      }
 
       setOpen(false);
       setLoading(false);
-      setMemberData(initialState);
-      context.setCreateDesignSystemToast(true);
+      // setDesignSystemData(initialState);
+      // context.setCreateDesignSystemToast(true);
 
-      // if (error) throw error;
+      console.log(system);
+      if (error) throw error;
     } catch (error: any) {
       console.log(error);
     }
@@ -103,53 +95,65 @@ const InviteMembersDialog = ({ children, title, theme }: any) => {
       <Dialog.Portal>
         <DialogOverlay className="DialogOverlay" />
         <DialogContent className="DialogContent">
-          <DialogTitle className="DialogTitle">Invite members</DialogTitle>
-          <div className="inner">
-            <form onSubmit={createDesignSystem}>
-              <Fieldset disabled={loading} className="Fieldset">
-                <Label className="Label" htmlFor="email">
-                  Email <Required>*</Required>
-                </Label>
-                <Input
-                  className="Input"
-                  name="email"
-                  id="email"
-                  placeholder="akram@figdoc.com"
-                  onChange={handleChange}
-                  required
-                />
-              </Fieldset>
-              <div
-                style={{
-                  display: "flex",
-                  marginTop: 24,
-                  justifyContent: "flex-end",
-                  gap: 12,
-                }}
-              >
-                <Dialog.Close asChild>
-                  <Button apperance={"ghost"}>Cancel</Button>
-                </Dialog.Close>
+          <DialogTitle className="DialogTitle">Join Design Systems</DialogTitle>
+          <DialogDescription>
+            You've been Invited to join the following Design System. Accept or
+            decline your invite below.
+          </DialogDescription>
 
-                <Button
-                  type="submit"
-                  css={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    minWidth: 44,
-                    opacity: loading ? 0.5 : 1,
-                  }}
-                >
-                  {loading ? <Spinner /> : "Invite"}
-                </Button>
-              </div>
-            </form>
+          <div className="inner">
+            <Divider />
+            <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+              {data.map((system) => (
+                <DesignSystemInviteRow key={system.id}>
+                  <div
+                    style={{ display: "flex", gap: 16, alignItems: "center" }}
+                  >
+                    <div className="icon">
+                      <FDSystemIcon theme={system.designSystemDetail.theme} />
+                    </div>
+                    <div className="content">
+                      <div className="title">
+                        {system.designSystemDetail.title}
+                      </div>
+
+                      <div className="invitee">
+                        Invited by: {system.invited_by}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="actions">
+                    <Button
+                      size={"small"}
+                      apperance="secondary"
+                      onClick={() => DECLINE_DESIGN_SYSTEM(system)}
+                    >
+                      Decline
+                    </Button>
+                    <Button
+                      size={"small"}
+                      onClick={() => JOIN_DESIGN_SYSTEM(system)}
+                    >
+                      Join
+                    </Button>
+                  </div>
+                </DesignSystemInviteRow>
+              ))}
+            </div>
+
             <Dialog.Close asChild>
               <IconButton className="IconButton" aria-label="Close">
                 <Cancel />
               </IconButton>
             </Dialog.Close>
+            <div
+              style={{
+                display: "flex",
+                marginTop: 16,
+                justifyContent: "flex-end",
+                gap: 12,
+              }}
+            ></div>
           </div>
         </DialogContent>
       </Dialog.Portal>
@@ -157,7 +161,56 @@ const InviteMembersDialog = ({ children, title, theme }: any) => {
   );
 };
 
-export default InviteMembersDialog;
+export default ViewInvitesDialog;
+
+const Divider = styled("div", {
+  background: "$gray6",
+  height: 1,
+  width: "100%",
+  margin: "16px 0 24px 0",
+
+  // "&:before": {
+  //   content: "",
+  //   position: "absolute",
+  //   background: "$gray10",
+  //   height: 1,
+  //   width: '100%',
+  // },
+});
+
+const DesignSystemInviteRow = styled("div", {
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+
+  ".title": {
+    fontSize: "$2",
+    fontWeight: 500,
+    color: "$gray12",
+    width: "240px",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  },
+
+  ".description": {
+    fontSize: "$1",
+    color: "$gray11",
+  },
+  ".invitee": {
+    fontSize: "$1",
+    color: "$gray11",
+    width: "240px",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  },
+
+  ".actions": {
+    display: "flex",
+    gap: 8,
+  },
+});
 
 const overlayShow = keyframes({
   "0%": { opacity: 0 },
@@ -205,6 +258,14 @@ const DialogTitle = styled(Dialog.Title, {
   display: "flex",
   alignItems: "center",
   padding: 20,
+});
+
+const DialogDescription = styled(Dialog.Description, {
+  color: "$gray11",
+  fontSize: "$2",
+  display: "flex",
+  alignItems: "center",
+  padding: "0px 20px",
 });
 
 const IconButton = styled("button", {

@@ -317,9 +317,30 @@ const DashboardSidebar = ({ setDesignSystemName }) => {
       </SidebarSection>
       <Divider />
       <SidebarSection>
-        <DesignSystemList setDesignSystemName={setDesignSystemName} />
+        <NavigationMenu.Root>
+          <NavMenuList>
+            <DesignSystemList setDesignSystemName={setDesignSystemName} />
+            <Tooltip.Root>
+              <NavMenuItem>
+                <Tooltip.Trigger asChild>
+                  <NavMenuLink>
+                    <CreateNewDesignSystemDialog>
+                      <Button>
+                        <Plus />
+                      </Button>
+                    </CreateNewDesignSystemDialog>
+                  </NavMenuLink>
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <TooltipContent side="right" sideOffset={8}>
+                    New Design System
+                  </TooltipContent>
+                </Tooltip.Portal>
+              </NavMenuItem>
+            </Tooltip.Root>
+          </NavMenuList>
+        </NavigationMenu.Root>
       </SidebarSection>
-
       <SidebarFooter>
         <SidebarSection>
           <NavigationMenu.Root>
@@ -415,51 +436,31 @@ const DesignSystemList = ({ setDesignSystemName }) => {
   const { system } = router.query;
 
   return (
-    <NavigationMenu.Root>
-      <NavMenuList>
-        {data.map((design_system: any) => {
-          return (
-            <Tooltip.Root key={design_system.id}>
-              <NavMenuItem>
-                <Tooltip.Trigger asChild>
-                  <NavMenuNextLink
-                    color={design_system.theme}
-                    href={`/design-system/${design_system.id}`}
-                    active={system == design_system.id}
-                  >
-                    <Svg3DSelectFace />
-                  </NavMenuNextLink>
-                </Tooltip.Trigger>
-                <Tooltip.Portal>
-                  <TooltipContent side="right" sideOffset={8}>
-                    {design_system.title}
-                  </TooltipContent>
-                </Tooltip.Portal>
-              </NavMenuItem>
-            </Tooltip.Root>
-          );
-        })}
-
-        <Tooltip.Root>
-          <NavMenuItem>
-            <Tooltip.Trigger asChild>
-              <NavMenuLink>
-                <CreateNewDesignSystemDialog>
-                  <Button>
-                    <Plus />
-                  </Button>
-                </CreateNewDesignSystemDialog>
-              </NavMenuLink>
-            </Tooltip.Trigger>
-            <Tooltip.Portal>
-              <TooltipContent side="right" sideOffset={8}>
-                New Design System
-              </TooltipContent>
-            </Tooltip.Portal>
-          </NavMenuItem>
-        </Tooltip.Root>
-      </NavMenuList>
-    </NavigationMenu.Root>
+    <>
+      {" "}
+      {data.map((design_system: any) => {
+        return (
+          <Tooltip.Root key={design_system.id}>
+            <NavMenuItem>
+              <Tooltip.Trigger asChild>
+                <NavMenuNextLink
+                  color={design_system.theme}
+                  href={`/design-system/${design_system.id}`}
+                  active={system == design_system.id}
+                >
+                  <Svg3DSelectFace />
+                </NavMenuNextLink>
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <TooltipContent side="right" sideOffset={8}>
+                  {design_system.title}
+                </TooltipContent>
+              </Tooltip.Portal>
+            </NavMenuItem>
+          </Tooltip.Root>
+        );
+      })}
+    </>
   );
 };
 

@@ -24,8 +24,8 @@ export const Button = styled("button", {
     size: {
       small: {
         fontSize: "$1",
-        height: 32,
-        padding: "0 8px",
+        height: 36,
+        padding: "0 12px",
         svg: {
           width: 14,
         },

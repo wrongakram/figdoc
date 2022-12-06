@@ -23,11 +23,12 @@ import {
 import CreateNewDesignSystemDialog from "../components/Modals/CreateDesignSystem";
 
 // Icons
-import { Plus, Svg3DSelectFace } from "iconoir-react";
+import { MailIn, Plus, Svg3DSelectFace } from "iconoir-react";
 import { FDDesignSystemCards } from "../components/FDCards";
 import { styled } from "../stitches.config";
 import _ from "lodash";
 import Spinner from "../components/Spinner";
+import Invites from "../components/invites";
 
 // This gets called on every request
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
@@ -91,11 +92,14 @@ const Home = ({ user, data }: { data: DesignSystemData }) => {
             👋 Welcome {user.user_metadata.name}
           </PageDescription>
         </div>
-        <CreateNewDesignSystemDialog>
-          <Button>
-            <Plus /> Create
-          </Button>
-        </CreateNewDesignSystemDialog>
+        <div style={{ display: "flex", gap: 16 }}>
+          <Invites />
+          <CreateNewDesignSystemDialog>
+            <Button>
+              <Plus /> Create
+            </Button>
+          </CreateNewDesignSystemDialog>
+        </div>
       </PageHeader>
       <div>
         {loading ? (

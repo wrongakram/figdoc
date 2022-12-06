@@ -93,22 +93,19 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
   // Run queries with RLS on the server
   const { data } = await supabase
-    .from("component")
-    .select("*")
-    .filter("id", "eq", ctx.params?.component)
-    .single();
-
-  const designSystemData = await supabase
     .from("design_system")
     .select("*")
-    .filter("id", "eq", ctx.params?.system);
+    .filter("id", "eq", ctx.params?.system)
+    .select("*, component (*)")
+    .eq("component.id", ctx.params?.component)
+    .limit(1)
+    .single();
 
   return {
     props: {
       initialSession: session,
       user: session.user,
-      data: data ?? [],
-      designSystem: designSystemData ?? {},
+      data: data,
     },
   };
 };
@@ -156,14 +153,17 @@ const ComponentPage = ({ data, designSystem }: any) => {
 
   return (
     <Page css={{ padding: 0 }}>
-      <Navbar designSystem={designSystem} data={data} />
+      <pre>
+        <small> {JSON.stringify(data, null, 2)}</small>
+      </pre>
+      <Navbar data={data} />
       <Container css={{ padding: "0 24px" }}>
         <ContainerChild>
-          <FigmaComponentPreview url={data?.figma_url} />
+          <FigmaComponentPreview url={data.component[0].figma_url} />
         </ContainerChild>
         <ContainerChild>
           <Editor component={component} />
-          <ComponentFigmaProps componentData={data} fileKey={designSystem} />
+          <ComponentFigmaProps designSystem={data} />
         </ContainerChild>
       </Container>
     </Page>
@@ -174,11 +174,11 @@ export default ComponentPage;
 
 // FIGMA COMPONENT PROPS
 
-const ComponentFigmaProps = ({ componentData, fileKey }) => {
+const ComponentFigmaProps = ({ designSystem }) => {
   const [variantData, setVariantData] = useState();
 
-  const { data, error } = useSWR([
-    "https://api.figma.com/v1/files/" + fileKey.data[0].figma_file_key,
+  const { data: figmaData, error } = useSWR([
+    "https://api.figma.com/v1/files/" + designSystem.figma_file_key,
     {
       method: "GET",
       headers: {
@@ -188,11 +188,11 @@ const ComponentFigmaProps = ({ componentData, fileKey }) => {
   ]);
 
   useEffect(() => {
-    if (data) {
+    if (figmaData) {
       let filterComponentVariant = _.flatten(
-        _.toPairs(data.components).map((variant) => {
+        _.toPairs(figmaData.components).map((variant) => {
           return _.filter(variant, {
-            componentSetId: componentData.nodeId,
+            componentSetId: designSystem.component[0].nodeId,
           });
         })
       );
@@ -241,12 +241,12 @@ const ComponentFigmaProps = ({ componentData, fileKey }) => {
 
       setVariantData(propsAndValues);
     }
-  }, [data, componentData]);
+  }, [figmaData, designSystem]);
 
   if (error) {
     return <p>No data</p>;
   }
-  if (!data) return "";
+  if (!figmaData) return "";
 
   return (
     <div>

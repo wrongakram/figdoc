@@ -198,6 +198,26 @@ const DesignSystemCardDropdown = ({ children, id, owner }) => {
   const supabaseClient = useSupabaseClient();
   const { mutate } = useSWRConfig();
 
+  const LEAVE_DESIGN_SYSTEM = async () => {
+    try {
+      // Delete Design System
+      const { error } = await supabaseClient
+        .from("members")
+        .delete()
+        .eq("user_id", user?.id);
+
+      mutate(`http://localhost:3000/api/design-systems/getAllDesignSystems`);
+      router.push(`/`);
+
+      if (error)
+        throw {
+          error,
+        };
+    } catch (error: any) {
+      console.log(error);
+    }
+  };
+
   const DELETE_DESIGN_SYSTEM = async () => {
     try {
       // Delete Design System
@@ -236,6 +256,15 @@ const DesignSystemCardDropdown = ({ children, id, owner }) => {
             <DropdownMenuSeparator></DropdownMenuSeparator>
             <DropdownMenuItem onClick={DELETE_DESIGN_SYSTEM} destructive>
               Delete
+            </DropdownMenuItem>
+          </>
+        )}
+
+        {!admin && (
+          <>
+            <DropdownMenuSeparator></DropdownMenuSeparator>
+            <DropdownMenuItem onClick={LEAVE_DESIGN_SYSTEM} destructive>
+              Leave
             </DropdownMenuItem>
           </>
         )}

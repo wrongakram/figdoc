@@ -30,23 +30,11 @@ export const getServerSideProps: GetServerSideProps = async (
     };
 
   // Get design system details
-  // const { data } = await supabase
-  //   .from("members")
-  //   .select("*")
-  //   .filter("design_system_id", "eq", ctx.params?.system)
-  //   .select("id, profiles (email)");
 
   const { data } = await supabase
-    .from("design_system")
-    .select("*")
-    .filter("id", "eq", ctx.params?.system)
-    .select("*, component (*)")
-    .single();
-
-  // const {data} = await supabase
-  // .from("profiles")
-  // .select("*")
-  // .filter("design_system_id", "eq", ctx.params?.system)
+    .from("members")
+    .select("*, design_system (*)")
+    .filter("design_system_id", "eq", ctx.params?.system);
 
   return {
     props: {
@@ -67,7 +55,10 @@ const Members = ({ data }) => {
             Invite people to the Mushroom Design System
           </PageDescription>
         </div>
-        <InviteMembersDialog>
+        <InviteMembersDialog
+          title={data[0].design_system.title}
+          theme={data[0].design_system.theme}
+        >
           <Button>Invite</Button>
         </InviteMembersDialog>
       </PageHeader>
