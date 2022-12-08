@@ -35,6 +35,7 @@
     "eslint-config-next": "13.0.3",
     "iconoir-react": "^5.4.1",
     "lodash": "^4.17.21",
+    "moment": "^2.29.4",
     "next": "13.0.3",
     "next-themes": "^0.2.1",
     "react": "18.2.0",

@@ -272,9 +272,3 @@ const DesignSystemCardDropdown = ({ children, id, owner }) => {
     </DropdownMenu>
   );
 };
-
-// COMPONENT
-
-export const FDComponentCards = () => {
-  return <div>Cards</div>;
-};

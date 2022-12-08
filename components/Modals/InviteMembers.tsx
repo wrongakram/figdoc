@@ -62,8 +62,6 @@ const InviteMembersDialog = ({ children, title, theme }: any) => {
     setLoading(true);
 
     try {
-      // Login to profile and send user an email
-
       const { data, error } = await supabaseClient.from("invites").insert([
         {
           design_system_id: system,
@@ -73,23 +71,16 @@ const InviteMembersDialog = ({ children, title, theme }: any) => {
             title: title,
             theme: theme,
           },
+          role: "editor",
         },
       ]);
-
-      // const { data: user, error } = await fetch(
-      //   "http://localhost:3000/api/inviteUser",
-      //   {
-      //     method: "POST",
-      //     headers: new Headers({ "Content-Type": "application/json" }),
-      //     credentials: "same-origin",
-      //     body: JSON.stringify({ email: memberData.email }),
-      //   }
-      // );
 
       setOpen(false);
       setLoading(false);
       setMemberData(initialState);
       context.setCreateDesignSystemToast(true);
+
+      router.reload();
 
       // if (error) throw error;
     } catch (error: any) {

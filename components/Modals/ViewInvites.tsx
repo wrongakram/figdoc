@@ -49,7 +49,10 @@ const ViewInvitesDialog = ({ children, data }: any) => {
 
   const DECLINE_DESIGN_SYSTEM = async (system) => {
     try {
-      await supabaseClient.from("invites").delete().eq("id", system.id);
+      const { error } = await supabaseClient
+        .from("invites")
+        .delete()
+        .eq("id", system.id);
 
       setOpen(false);
       // context.setCreateDesignSystemToast(true);
@@ -68,9 +71,12 @@ const ViewInvitesDialog = ({ children, data }: any) => {
             design_system_id: system.design_system_id,
             user_id: user?.id,
             email: system.invitee,
+            role: "editor",
           },
         ])
         .select();
+
+      DECLINE_DESIGN_SYSTEM(system);
 
       if (data) {
         mutate(`http://localhost:3000/api/design-systems/getAllDesignSystems`);

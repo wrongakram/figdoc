@@ -108,7 +108,6 @@ export default function ImportTable({
             </TableRow>
           ))}
         </TableBody>
-
         <TableFoot>
           <TableRow>
             <th>
