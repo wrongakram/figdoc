@@ -6,7 +6,7 @@ import { useRouter } from "next/router";
 import { GetServerSidePropsContext } from "next";
 
 // SWR
-import useSWR from "swr";
+import useSWRImmutable from "swr/immutable";
 
 // Supabase
 import { useUser, useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -27,9 +27,7 @@ import { Button } from "../../../components/FDButton";
 
 import { styled } from "@stitches/react";
 import ImportTable from "../../../components/Table";
-
-const fetcher = (url: string, options: any) =>
-  fetch(url, options).then((res) => res.json());
+import Spinner from "../../../components/Spinner";
 
 // This gets called on every request
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
@@ -88,26 +86,79 @@ const DesignSystemPage = ({ data, designSystem }: any) => {
 
 export default DesignSystemPage;
 
+const EmptyState = styled("div", {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  textAlign: "center",
+  width: 560,
+  height: "calc(100vh - 208px)",
+  margin: "0 auto",
+
+  ".svg-container": {
+    background: "$gray3",
+    display: "flex",
+    alignCenter: "center",
+    justifyContent: "center",
+    padding: 16,
+    borderRadius: 16,
+    svg: {
+      width: 32,
+      height: 32,
+      color: "$gray500",
+    },
+  },
+  h3: {
+    fontSize: "$4",
+    fontWeight: 600,
+    color: "$gray12",
+    marginTop: "$4",
+  },
+
+  p: {
+    fontSize: "$3",
+    color: "$gray11",
+    marginTop: "$1",
+    span: {
+      cursor: "pointer",
+      color: "$gray12",
+      fontWeight: 500,
+      padding: 4,
+      borderRadius: 6,
+      "&:hover": {
+        background: "$gray3",
+      },
+    },
+    a: {
+      cursor: "pointer",
+      color: "$blue11",
+      fontWeight: 500,
+      padding: 4,
+      borderRadius: 6,
+      "&:hover": {
+        background: "$blue3",
+      },
+    },
+  },
+});
+
 const TabFigma = ({ data }) => {
   const supabaseClient = useSupabaseClient();
   const user = useUser();
   const router = useRouter();
   const { system } = router.query;
 
-  // States
-  const [allFigmaComponents, setAllFigmaComponents] = useState([]);
-  const [unSyncedComponents, setUnSyncedComponents] = useState([]);
-
   // States NEW
   const [parentComponents, setParentComponents] = useState([]);
-  const [variants, setVariants] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   // Table Data
   const [rowSelection, setRowSelection] = useState({});
   const [selectedComponents, setSelectedComponents] = useState([]);
 
-  const { data: figmaComponentsAPI, error: figmaComponentsAPIError } = useSWR(
-    [
+  const { data: figmaComponentsAPI, error: figmaComponentsAPIError } =
+    useSWRImmutable([
       "https://api.figma.com/v1/files/" + data.figma_file_key + "/components",
       {
         method: "GET",
@@ -115,22 +166,17 @@ const TabFigma = ({ data }) => {
           "X-Figma-Token": process.env.NEXT_PUBLIC_FIGMA_TOKEN,
         },
       },
-    ],
-    fetcher
-  );
+    ]);
 
-  const { data: figmaFileAPI, error: figmaFileAPIError } = useSWR(
-    [
-      "https://api.figma.com/v1/files/" + data.figma_file_key,
-      {
-        method: "GET",
-        headers: {
-          "X-Figma-Token": process.env.NEXT_PUBLIC_FIGMA_TOKEN,
-        },
+  const { data: figmaFileAPI, error: figmaFileAPIError } = useSWRImmutable([
+    "https://api.figma.com/v1/files/" + data.figma_file_key,
+    {
+      method: "GET",
+      headers: {
+        "X-Figma-Token": process.env.NEXT_PUBLIC_FIGMA_TOKEN,
       },
-    ],
-    fetcher
-  );
+    },
+  ]);
 
   useEffect(() => {
     if (figmaComponentsAPI && figmaFileAPI) {
@@ -164,6 +210,7 @@ const TabFigma = ({ data }) => {
           };
         })
       );
+      setLoading(false);
     }
   }, [figmaComponentsAPI, figmaFileAPI, data]);
 
@@ -221,38 +268,49 @@ const TabFigma = ({ data }) => {
   };
 
   return (
-    <div>
-      {data.figma_file_key === null ? (
-        <p>No figma file key specified... add one now :)</p>
-      ) : parentComponents.length ? (
+    <>
+      {loading ? (
         <>
-          <ImportContainer>
-            <Flex>
-              <>
-                <ImportTable
-                  parentComponents={parentComponents}
-                  numberOfVariants={numberOfVariants}
-                  rowSelection={rowSelection}
-                  setRowSelection={setRowSelection}
-                />
-                <Button onClick={bulkCreateComponent}>View components</Button>
-
-                <small>
-                  <pre>{JSON.stringify(parentComponents, null, 2)}</pre>
-                  <hr />
-                  <pre>{JSON.stringify(data.component, null, 2)}</pre>
-                </small>
-              </>
-            </Flex>
-          </ImportContainer>
+          <EmptyState
+            css={{
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: "row",
+              gap: 12,
+            }}
+          >
+            <Spinner color="black" />{" "}
+            <span>Fetching components from figma...</span>
+          </EmptyState>
         </>
       ) : (
         <>
-          <pre>{JSON.stringify(parentComponents, null, 2)}</pre>
-          <p>No new components to import</p>
+          {parentComponents.length ? (
+            <ImportContainer>
+              <Flex>
+                <>
+                  <ImportTable
+                    parentComponents={parentComponents}
+                    numberOfVariants={numberOfVariants}
+                    rowSelection={rowSelection}
+                    setRowSelection={setRowSelection}
+                  />
+                  <Button onClick={bulkCreateComponent}>
+                    Import components
+                  </Button>
+                </>
+              </Flex>
+            </ImportContainer>
+          ) : (
+            <EmptyState>
+              <div className="svg-container"></div>
+              <h3>Couldn't find any components in your figma file</h3>
+              <p>Try creating a new component within your figma file</p>
+            </EmptyState>
+          )}
         </>
       )}
-    </div>
+    </>
   );
 };
 

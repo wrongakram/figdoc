@@ -97,6 +97,8 @@ const BreadcrumbItem = styled(Link, {
   padding: "4px 8px",
   borderRadius: 6,
   cursor: "pointer",
+  textTransform: "capitalize",
+
   "&:hover": {
     backgroundColor: "$gray3",
   },

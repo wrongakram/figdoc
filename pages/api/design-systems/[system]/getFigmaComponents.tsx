@@ -2,6 +2,7 @@ import { NextApiHandler } from "next";
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 
 const ProtectedRoute: NextApiHandler = async (req, res) => {
+  const { system } = req.query;
   // Create authenticated Supabase Client
   const supabase = createServerSupabaseClient({ req, res });
   // Check if we have a session
@@ -17,7 +18,10 @@ const ProtectedRoute: NextApiHandler = async (req, res) => {
     });
 
   // Run queries with RLS on the server
-  const { data } = await supabase.from("component").select("*");
+  const { data } = await supabase
+    .from("component")
+    .select("*")
+    .filter("design_system", "eq", system);
   res.json(data);
 };
 

@@ -31,6 +31,7 @@ import Link from "next/link";
 // Icons
 import { Plus, Puzzle } from "iconoir-react";
 import { styled } from "@stitches/react";
+import { FDComponentCard } from "../../../components/ComponentCards";
 
 export const getServerSideProps: GetServerSideProps = async (
   ctx: GetServerSidePropsContext
@@ -119,32 +120,22 @@ const DesignSystemPage = ({ data }: DesignSystemData) => {
               <span>+ Create</span>
             </CreateComponent>{" "}
             button above or you can import a component from Figma via{" "}
-            <Link href={`/design-system/${system}/figmaSync`}>Import</Link>
+            <Link href={`/design-system/${system}/importFigmaComponents`}>
+              Import
+            </Link>
           </p>
         </EmptyState>
       ) : (
         <PageGrid>
-          {data.component.map((component) => (
-            <ComponentCard
-              href={{
-                pathname: `/design-system/${system}/component/${component?.id}`,
-              }}
+          {data.component.map((component: any) => (
+            <FDComponentCard
               key={component.id}
-            >
-              <ComponentCoverImage
-                fileKey={data.figma_file_key}
-                nodeId={component.nodeId}
-              />
-              {component.nodeId && <FigmaTag>Figma Component</FigmaTag>}
-              <div className="content">
-                <div className="title">{component.title}</div>
-                <div className="description">{component.description}</div>
-              </div>
-            </ComponentCard>
+              component={component}
+              fileKey={data.figma_file_key}
+            />
           ))}
         </PageGrid>
       )}
-      <pre> {JSON.stringify(data, null, 2)}</pre>
     </Page>
   );
 };
@@ -296,67 +287,4 @@ const FigmaTag = styled("div", {
   fontSize: 12,
   fontWeight: 500,
   borderRadius: 6,
-});
-
-const ComponentCard = styled(Link, {
-  borderRadius: 12,
-  border: "solid 1px $gray6",
-  position: "relative",
-  overflow: "hidden",
-  paddingBottom: "48px",
-  "&:hover": {
-    border: "solid 1px $gray8",
-  },
-
-  ".cover": {
-    background: "$gray1",
-    height: "200px",
-    display: "block",
-    padding: 48,
-    ".img": {
-      height: "100%",
-      position: "relative",
-      display: "block",
-    },
-  },
-
-  ".avatar": {
-    position: "absolute",
-    left: "16px",
-    top: "24px",
-  },
-
-  ".content": {
-    marginTop: "12px",
-    padding: "16px",
-    display: "flex",
-    alignItems: "flex-start",
-    flexDirection: "column",
-    ".title": {
-      fontSize: "16px",
-      fontWeight: "600",
-      color: "$gray12",
-    },
-
-    ".description": {
-      fontSize: "14px",
-      color: "$gray11",
-    },
-  },
-
-  ".tags-container": {
-    position: "absolute",
-    bottom: "16px",
-    left: "16px",
-    ".tag": {
-      border: "solid 1px $gray6",
-      borderRadius: "100px",
-      fontSize: "12px",
-      color: "$gray11",
-      display: "inline-flex",
-      alignItems: "center",
-      padding: "0 8px",
-      height: "28px",
-    },
-  },
 });

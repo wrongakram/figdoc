@@ -10,7 +10,7 @@ import { styled } from "../../../../stitches.config";
 // Next
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { GetServerSidePropsContext } from "next";
-import useSWR from "swr";
+import useSWRImmutable from "swr/immutable";
 import { useRouter } from "next/router";
 
 // Utils
@@ -153,9 +153,9 @@ const ComponentPage = ({ data, designSystem }: any) => {
 
   return (
     <Page css={{ padding: 0 }}>
-      <pre>
+      {/* <pre>
         <small> {JSON.stringify(data, null, 2)}</small>
-      </pre>
+      </pre> */}
       <Navbar data={data} />
       <Container css={{ padding: "0 24px" }}>
         <ContainerChild>
@@ -177,7 +177,7 @@ export default ComponentPage;
 const ComponentFigmaProps = ({ designSystem }) => {
   const [variantData, setVariantData] = useState();
 
-  const { data: figmaData, error } = useSWR([
+  const { data: figmaData, error } = useSWRImmutable([
     "https://api.figma.com/v1/files/" + designSystem.figma_file_key,
     {
       method: "GET",

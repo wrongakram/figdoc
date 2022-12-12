@@ -25,7 +25,7 @@ const Spin = styled("span", {
   variants: {
     color: {
       black: {
-        border: "2.5px solid $gray11",
+        border: "2px solid $gray12",
         borderBottomColor: "transparent",
       },
     },

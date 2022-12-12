@@ -10,8 +10,25 @@ import { violet, mauve, blackA, red } from "@radix-ui/colors";
 
 import { useRouter } from "next/router";
 import Link from "next/link";
-import { Plus, Search, NavArrowDown, OpenNewWindow } from "iconoir-react";
+import {
+  Plus,
+  Search,
+  NavArrowDown,
+  OpenNewWindow,
+  GridAdd,
+  Import,
+  TerminalSimple,
+  Figma,
+  ProfileCircled,
+  ViewGrid,
+  Packages,
+  BookmarkBook,
+  DataTransferBoth,
+} from "iconoir-react";
 import EditDesignSystemDialog from "./Modals/EditDesignSystem";
+import { capitalizeFirstLetter } from "../utils/functions/capitalizeFirstLetter";
+import * as ScrollArea from "@radix-ui/react-scroll-area";
+import _ from "lodash";
 
 const Button = styled("button", {
   height: "36px",
@@ -197,13 +214,17 @@ const NavMenuLink = styled(Link, {
   listStyle: "none",
   margin: "none",
   cursor: "pointer",
-  height: 36,
+  height: 40,
   display: "flex",
   alignItems: "center",
   padding: "0px 8px",
   fontSize: 14,
-  borderRadius: "6px",
+  borderRadius: 8,
   color: "$gray11",
+  gap: 8,
+  svg: {
+    width: 18,
+  },
   "&:hover": {
     background: "$gray3",
   },
@@ -316,10 +337,11 @@ const SidebarComponents = ({ designSystemName }) => {
                 href={`/design-system/${system}`}
                 active={path === `/design-system/${system}`}
               >
+                <BookmarkBook />
                 Components Index
               </NavMenuLink>
             </NavMenuItem>
-            {ds?.figma_file_key && (
+            {/* {ds?.figma_file_key && (
               <NavMenuItem>
                 <NavMenuExternalLink
                   target="_blank"
@@ -330,13 +352,16 @@ const SidebarComponents = ({ designSystemName }) => {
                   <OpenNewWindow width={14} />
                 </NavMenuExternalLink>
               </NavMenuItem>
-            )}
+            )} */}
             <NavMenuItem>
               <NavMenuLink
-                href={`/design-system/${system}/figmaSync`}
-                active={path === `/design-system/${system}/figmaSync`}
+                href={`/design-system/${system}/importFigmaComponents`}
+                active={
+                  path === `/design-system/${system}/importFigmaComponents`
+                }
               >
-                Figma Sync
+                <DataTransferBoth />
+                Import components
               </NavMenuLink>
             </NavMenuItem>
             <NavMenuItem>
@@ -344,6 +369,7 @@ const SidebarComponents = ({ designSystemName }) => {
                 href={`/design-system/${system}/members`}
                 active={path === `/design-system/${system}/members`}
               >
+                <ProfileCircled />
                 Members
               </NavMenuLink>
             </NavMenuItem>
@@ -393,24 +419,36 @@ const ComponentsList = ({ ds, setNumberOfComponents }) => {
   if (!data) return "";
 
   return (
-    <SidebarSection>
-      <NavigationMenu.Root>
-        <NavMenuList>
-          {data.map((componentItem: any) => {
-            return (
-              <NavMenuItem key={componentItem.id}>
-                <NavMenuExternalLink
-                  href={`/design-system/${system}/component/${componentItem?.id}`}
-                  active={component == componentItem.id}
-                >
-                  {componentItem.title}
-                </NavMenuExternalLink>
-              </NavMenuItem>
-            );
-          })}
-        </NavMenuList>
-      </NavigationMenu.Root>
-    </SidebarSection>
+    <ScrollAreaRoot>
+      <ScrollAreaViewport>
+        <SidebarSection>
+          <NavigationMenu.Root>
+            <NavMenuList>
+              {_.sortBy(data).map((componentItem: any) => {
+                console.log(componentItem.title);
+                return (
+                  <NavMenuItem key={componentItem.id}>
+                    <NavMenuExternalLink
+                      href={`/design-system/${system}/component/${componentItem?.id}`}
+                      active={component == componentItem.id}
+                    >
+                      {capitalizeFirstLetter(componentItem.title)}
+                    </NavMenuExternalLink>
+                  </NavMenuItem>
+                );
+              })}
+            </NavMenuList>
+          </NavigationMenu.Root>
+        </SidebarSection>
+      </ScrollAreaViewport>
+      <ScrollAreaScrollbar orientation="vertical">
+        <ScrollAreaThumb />
+      </ScrollAreaScrollbar>
+      <ScrollAreaScrollbar orientation="horizontal">
+        <ScrollAreaThumb />
+      </ScrollAreaScrollbar>
+      <ScrollAreaCorner />
+    </ScrollAreaRoot>
   );
 };
 
@@ -590,4 +628,53 @@ const DropdownDescription = styled("div", {
   display: "flex",
   flexDirection: "column",
   gap: 4,
+});
+
+const ScrollAreaRoot = styled(ScrollArea.Root, {
+  height: "calc(100% - 300px)",
+  overflow: "hidden",
+});
+
+const ScrollAreaViewport = styled(ScrollArea.Viewport, {
+  width: "100%",
+  height: "100%",
+  borderRadius: "inherit",
+});
+
+const ScrollAreaScrollbar = styled(ScrollArea.Scrollbar, {
+  display: "flex",
+  // ensures no selection
+  userSelect: "none",
+  // disable browser handling of all panning and zooming gestures on touch devices
+  touchAction: "none",
+  padding: 2,
+  transition: "background 160ms ease-out",
+  '&[data-orientation="vertical"]': { width: 10 },
+  '&[data-orientation="horizontal"]': {
+    flexDirection: "column",
+    height: 10,
+  },
+});
+
+const ScrollAreaThumb = styled(ScrollArea.Thumb, {
+  flex: 1,
+  background: "$gray8",
+  borderRadius: 10,
+  // increase target size for touch devices https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
+  position: "relative",
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: "100%",
+    height: "100%",
+    minWidth: 44,
+    minHeight: 44,
+  },
+});
+
+const ScrollAreaCorner = styled(ScrollArea.Corner, {
+  background: "blue",
 });

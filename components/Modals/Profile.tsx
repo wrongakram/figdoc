@@ -1,4 +1,4 @@
-import type { ReactElement } from "react";
+import { ReactElement, useEffect } from "react";
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useRouter } from "next/router";
@@ -19,6 +19,56 @@ const Profile = ({ children }: any) => {
   const supabaseClient = useSupabaseClient();
   const user = useUser();
   const router = useRouter();
+
+  const initialData = {
+    id: "",
+    full_name: "",
+    avatar_url: "",
+    figma_token: "",
+    email: "",
+  };
+
+  const [profileData, setProfileData] = useState(initialData);
+
+  const handleChange = (e: any) => {
+    setProfileData({ ...profileData, [e.target.id]: e.target.value });
+  };
+
+  useEffect(() => {
+    async function getProfileDetails() {
+      const { data, error } = await supabaseClient
+        .from("profiles")
+        .select("*")
+        .filter("id", "eq", user?.id)
+        .single();
+
+      if (error) {
+        console.log(error);
+      } else {
+        setProfileData(data);
+      }
+    }
+    if (typeof user?.id !== "undefined") {
+      getProfileDetails();
+    }
+  }, [user]);
+
+  const updateFigmaToken = async () => {
+    try {
+      const { error } = await supabaseClient
+        .from("profiles")
+        .update([
+          {
+            figma_token: profileData.figma_token,
+          },
+        ])
+        .eq("id", user?.id);
+
+      if (error) throw error;
+    } catch (error: any) {
+      console.log(error);
+    }
+  };
 
   async function signout() {
     const { error } = await supabaseClient.auth.signOut();
@@ -42,25 +92,15 @@ const Profile = ({ children }: any) => {
     }
   };
 
-  const initialState = {
-    title: "",
-    description: "",
-    figma_file_key: "",
-    theme: "",
-  };
-
-  const [designSystemData, setDesignSystemData] = useState(initialState);
-
-  const handleChange = (e: any) => {
-    setDesignSystemData({ ...designSystemData, [e.target.id]: e.target.value });
-  };
-
   return (
     <Dialog.Root>
       <Dialog.Trigger asChild>{children}</Dialog.Trigger>
       <Dialog.Portal>
         <DialogOverlay className="DialogOverlay" />
-        <DialogContent className="DialogContent">
+        <DialogContent
+          className="DialogContent"
+          onCloseAutoFocus={updateFigmaToken}
+        >
           <DialogTitle className="DialogTitle">Profile</DialogTitle>
           <div className="inner">
             <Flex
@@ -92,7 +132,7 @@ const Profile = ({ children }: any) => {
               </Flex>
               <Button onClick={signout}>Sign out</Button>
             </Flex>
-
+            <pre>{JSON.stringify(profileData, null, 2)}</pre>
             <Divider />
             <div style={{ marginBottom: 32 }}>
               <SectionHeader>Figma access</SectionHeader>
@@ -113,7 +153,9 @@ const Profile = ({ children }: any) => {
                 name="figma_token"
                 id="figma_token"
                 placeholder="figd_iAjz5jxSgXD0N-3S1w_9iMNBv1KdYhUZHa8cDGAF"
+                defaultValue={profileData.figma_token}
                 onChange={handleChange}
+                onBlur={updateFigmaToken}
               />
             </Fieldset>
 
