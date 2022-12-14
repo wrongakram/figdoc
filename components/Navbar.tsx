@@ -1,7 +1,7 @@
 import React from "react";
 import { styled } from "@stitches/react";
 import { blue } from "@radix-ui/colors";
-import { MoreHorizCircledOutline } from "iconoir-react";
+import { Lock, LockKey, MoreHorizCircledOutline, NoLock } from "iconoir-react";
 import Link from "next/link";
 
 import {
@@ -16,6 +16,7 @@ import {
 import { useRouter } from "next/router";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { mutate } from "swr";
+import { Button } from "./FDButton";
 
 const ComponentDropdown = ({ children }) => {
   const router = useRouter();
@@ -55,7 +56,7 @@ const ComponentDropdown = ({ children }) => {
   );
 };
 
-const Navbar = ({ data, savingStatus }: any) => {
+const Navbar = ({ data, savingStatus, readOnly, setReadOnly }: any) => {
   return (
     <NavContainer>
       <Breadcrumb>
@@ -69,14 +70,31 @@ const Navbar = ({ data, savingStatus }: any) => {
       </Breadcrumb>
 
       <NavActions>
-        {savingStatus === "idle" ? null : savingStatus === "saving" ? (
-          <SaveMessage>Saving...</SaveMessage>
-        ) : savingStatus === "saved" ? (
-          <SaveMessage>Saved!</SaveMessage>
-        ) : savingStatus === "error" ? (
-          <SaveMessage>Error... couldn't save</SaveMessage>
-        ) : null}
+        <div style={{ marginRight: 6 }}>
+          {savingStatus === "idle" ? null : savingStatus === "saving" ? (
+            <SaveMessage>Saving...</SaveMessage>
+          ) : savingStatus === "saved" ? (
+            <SaveMessage>Saved!</SaveMessage>
+          ) : savingStatus === "error" ? (
+            <SaveMessage>Error... couldn't save</SaveMessage>
+          ) : null}
+        </div>
 
+        <Button
+          apperance={"ghost"}
+          size={"small"}
+          onClick={() => setReadOnly((prev) => !prev)}
+        >
+          {readOnly ? (
+            <>
+              <Lock width={18} /> Locked
+            </>
+          ) : (
+            <>
+              <NoLock width={18} /> Unlocked
+            </>
+          )}
+        </Button>
         <ComponentDropdown>
           <IconButton>
             <MoreHorizCircledOutline width={18} />
@@ -134,7 +152,7 @@ const BreadcrumbSeparator = styled("div", {
 const NavActions = styled("div", {
   display: "flex",
   alignItems: "center",
-  gap: 8,
+  gap: 2,
 });
 
 const SaveMessage = styled("span", {

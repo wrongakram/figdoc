@@ -20,11 +20,6 @@ import Navbar from "../../../../components/Navbar";
 // Components
 import * as Tabs from "@radix-ui/react-tabs";
 
-import { Editable, withReact, useSlate, Slate } from "slate-react";
-import { createEditor } from "slate";
-import { withHistory } from "slate-history";
-import dynamic from "next/dynamic";
-
 // import Loader from "../../../../components/app/Loader";
 import Leaf from "../../../../components/editor/Leaf";
 import Element from "../../../../components/editor/Element";
@@ -63,6 +58,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       initialSession: session,
       user: session.user,
       data: data,
+      componentDocumentation: data?.component[0]?.documentation,
     },
   };
 };
@@ -87,34 +83,47 @@ const ContainerChild = styled("div", {
   gap: "40px",
 });
 
-const ComponentPage = ({ data }: any) => {
+const ComponentPage = ({ data, componentDocumentation }: any) => {
   const router = useRouter();
   const { component } = router.query;
   const supabaseClient = useSupabaseClient();
-  const [realtimeComponentData, setRealtimeComponentData] = useState();
 
   const [currentMark, setCurrentMark] = useState(null);
   const [publishing, setPublishing] = useState(false);
   const [disabled, setDisabled] = useState(true);
   const [savingStatus, setSavingStatus] = useState("idle");
+  const [readOnly, setReadOnly] = useState(true);
 
   const renderElement = useCallback((props) => <Element {...props} />, []);
   const renderLeaf = useCallback((props) => <Leaf {...props} />, []);
 
+  useEffect(() => {
+    if (data) {
+      setReadOnly(true);
+    }
+  }, [data, component]);
+
   return (
     <Page css={{ padding: 0 }}>
-      <Navbar data={data} savingStatus={savingStatus} />
+      <Navbar
+        data={data}
+        savingStatus={savingStatus}
+        readOnly={readOnly}
+        setReadOnly={setReadOnly}
+      />
       <Container css={{ padding: "0 24px" }}>
         <ContainerChild>
           <FigmaComponentPreview url={data?.component[0].figma_url} />
           <ComponentFigmaProps designSystem={data} />
         </ContainerChild>
-        <ContainerChild>
-          {data && (
-            <Editor component={component} setSavingStatus={setSavingStatus} />
-          )}
-
-          {/* <ComponentFigmaProps designSystem={data} /> */}
+        <ContainerChild key={data.component[0].id}>
+          <Editor
+            data={data}
+            componentDocumentation={componentDocumentation}
+            component={component}
+            setSavingStatus={setSavingStatus}
+            readOnly={readOnly}
+          />
         </ContainerChild>
       </Container>
     </Page>

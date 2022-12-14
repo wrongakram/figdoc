@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Slate, Editable, withReact } from "slate-react";
 import {
   Transforms,
@@ -12,6 +18,7 @@ import { useRouter } from "next/router";
 import useSWR, { useSWRConfig } from "swr";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import _ from "lodash";
+import Spinner from "../Spinner";
 
 const withLayout = (editor) => {
   const { normalizeNode } = editor;
@@ -66,32 +73,24 @@ const withLayout = (editor) => {
   return editor;
 };
 
-const Editor = ({ setSavingStatus }: any) => {
+const Editor = ({
+  data,
+  setSavingStatus,
+  readOnly,
+  componentDocumentation,
+}: any) => {
   const router = useRouter();
   const { system, component: componentId } = router.query;
   const supabaseClient = useSupabaseClient();
   const { mutate } = useSWRConfig();
-  const [wait, setWait] = useState(true);
-
-  const editor = useMemo(
-    () => withHistory(withLayout(withReact(createEditor()))),
-    []
-  );
 
   const renderElement = useCallback((props) => <Element {...props} />, []);
 
-  const initialValue = [
-    {
-      type: "title",
-      children: [{ text: "Untitled" }],
-    },
-    {
-      type: "paragraph",
-      children: [{ text: "" }],
-    },
-  ];
+  const [editor] = useState(() =>
+    withHistory(withLayout(withReact(createEditor())))
+  );
 
-  const saveContent = async (content) => {
+  const saveContent = async (content, id) => {
     try {
       setSavingStatus("saving");
       const { error } = await supabaseClient
@@ -102,10 +101,12 @@ const Editor = ({ setSavingStatus }: any) => {
             documentation: content,
           },
         ])
-        .eq("id", componentId);
+        .eq("id", id);
 
       setSavingStatus("saved");
-      mutate(`http://localhost:3000/api/design-systems/${system}`);
+      mutate(
+        `http://localhost:3000/api/design-systems/${system}/component/${componentId}`
+      );
 
       setTimeout(() => {
         setSavingStatus("idle");
@@ -132,37 +133,27 @@ const Editor = ({ setSavingStatus }: any) => {
     };
   };
 
-  const changeHandler = (value) => {
-    saveContent(value);
+  const changeHandler = (value, id) => {
+    saveContent(value, id);
   };
 
   const debouncedChangeHandler = useMemo(
-    () => debounce(changeHandler, 1000),
+    () => debounce(changeHandler, 300),
     []
   );
 
-  const { data: componentData, error } = useSWR(
-    `http://localhost:3000/api/design-systems/${system}/component/${componentId}`
-  );
-
-  if (error) {
-    return <p>404</p>;
-  }
-
-  if (!componentData) return null;
-  editor.children = componentData.documentation;
   return (
     <>
-      {componentData && (
+      {componentDocumentation ? (
         <Slate
           editor={editor}
-          value={componentData.documentation}
+          value={componentDocumentation}
           onChange={(value) => {
             const isAstChange = editor.operations.some(
               (op) => "set_selection" !== op.type
             );
             if (isAstChange) {
-              debouncedChangeHandler(value);
+              debouncedChangeHandler(value, data.component[0].id);
             }
           }}
         >
@@ -170,9 +161,20 @@ const Editor = ({ setSavingStatus }: any) => {
             renderElement={renderElement}
             placeholder="Enter a title…"
             spellCheck
-            autoFocus
+            readOnly={readOnly}
           />
         </Slate>
+      ) : (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "100%",
+          }}
+        >
+          <Spinner color="black" />
+        </div>
       )}
     </>
   );
