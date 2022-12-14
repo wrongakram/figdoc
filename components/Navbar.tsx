@@ -55,7 +55,7 @@ const ComponentDropdown = ({ children }) => {
   );
 };
 
-const Navbar = ({ data }: any) => {
+const Navbar = ({ data, savingStatus }: any) => {
   return (
     <NavContainer>
       <Breadcrumb>
@@ -69,6 +69,14 @@ const Navbar = ({ data }: any) => {
       </Breadcrumb>
 
       <NavActions>
+        {savingStatus === "idle" ? null : savingStatus === "saving" ? (
+          <SaveMessage>Saving...</SaveMessage>
+        ) : savingStatus === "saved" ? (
+          <SaveMessage>Saved!</SaveMessage>
+        ) : savingStatus === "error" ? (
+          <SaveMessage>Error... couldn't save</SaveMessage>
+        ) : null}
+
         <ComponentDropdown>
           <IconButton>
             <MoreHorizCircledOutline width={18} />
@@ -125,7 +133,13 @@ const BreadcrumbSeparator = styled("div", {
 
 const NavActions = styled("div", {
   display: "flex",
-  gap: 2,
+  alignItems: "center",
+  gap: 8,
+});
+
+const SaveMessage = styled("span", {
+  fontSize: 14,
+  color: "$gray9",
 });
 
 const IconButton = styled("button", {

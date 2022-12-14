@@ -8,16 +8,10 @@ import {
   Descendant,
 } from "slate";
 import { withHistory } from "slate-history";
-import { ParagraphElement, TitleElement } from "./custom-types";
 import { useRouter } from "next/router";
 import useSWR, { useSWRConfig } from "swr";
-
-const initialValue: Descendant[] = [
-  {
-    type: "paragraph",
-    children: [{ text: "" }],
-  },
-];
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import _ from "lodash";
 
 const withLayout = (editor) => {
   const { normalizeNode } = editor;
@@ -72,56 +66,103 @@ const withLayout = (editor) => {
   return editor;
 };
 
-const Editor = ({ component }) => {
+const Editor = ({ setSavingStatus }: any) => {
   const router = useRouter();
-  const { system } = router.query;
+  const { system, component: componentId } = router.query;
+  const supabaseClient = useSupabaseClient();
+  const { mutate } = useSWRConfig();
+  const [wait, setWait] = useState(true);
+
+  const editor = useMemo(
+    () => withHistory(withLayout(withReact(createEditor()))),
+    []
+  );
 
   const renderElement = useCallback((props) => <Element {...props} />, []);
 
-  const { data, error } = useSWR(
-    `http://localhost:3000/api/design-systems/${system}/component/${component}`,
+  const initialValue = [
     {
-      revalidateOnMount: true,
+      type: "title",
+      children: [{ text: "Untitled" }],
+    },
+    {
+      type: "paragraph",
+      children: [{ text: "" }],
+    },
+  ];
+
+  const saveContent = async (content) => {
+    try {
+      setSavingStatus("saving");
+      const { error } = await supabaseClient
+        .from("component")
+        .update([
+          {
+            title: content[0].children[0].text,
+            documentation: content,
+          },
+        ])
+        .eq("id", componentId);
+
+      setSavingStatus("saved");
+      mutate(`http://localhost:3000/api/design-systems/${system}`);
+
+      setTimeout(() => {
+        setSavingStatus("idle");
+      }, 2000);
+
+      if (error) {
+        throw error;
+        setSavingStatus("error");
+      }
+    } catch (error: any) {
+      console.log(error);
     }
+  };
+
+  const debounce = (func, wait) => {
+    let timeout;
+    return function (...args) {
+      const context = this;
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        timeout = null;
+        func.apply(context, args);
+      }, wait);
+    };
+  };
+
+  const changeHandler = (value) => {
+    saveContent(value);
+  };
+
+  const debouncedChangeHandler = useMemo(
+    () => debounce(changeHandler, 1000),
+    []
   );
 
-  const editor = useMemo(() => withLayout(withReact(createEditor())), []);
-
-  const initialValue = useMemo(
-    () =>
-      data?.documentation || [
-        {
-          type: "title",
-          children: [{ text: "" }],
-        },
-        {
-          type: "paragraph",
-          children: [{ text: "" }],
-        },
-      ],
-    [data, component]
+  const { data: componentData, error } = useSWR(
+    `http://localhost:3000/api/design-systems/${system}/component/${componentId}`
   );
 
   if (error) {
-    return <p>oops something went wrong</p>;
+    return <p>404</p>;
   }
-  if (!data) return <p>loading...</p>;
 
+  if (!componentData) return null;
+  editor.children = componentData.documentation;
   return (
     <>
-      {data && (
+      {componentData && (
         <Slate
           editor={editor}
-          value={data?.documentation}
+          value={componentData.documentation}
           onChange={(value) => {
             const isAstChange = editor.operations.some(
               (op) => "set_selection" !== op.type
             );
             if (isAstChange) {
-              // Save the value to Local Storage.
-              const content = JSON.stringify(value);
-
-              // localStorage.setItem("content", content);
+              debouncedChangeHandler(value);
             }
           }}
         >

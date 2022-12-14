@@ -77,7 +77,7 @@ const Members = ({ data, invites }) => {
       <TabsRoot defaultValue="tab1">
         <TabsList aria-label="Manage your account">
           <TabsTrigger value="tab1">
-            Members{" "}
+            Members
             <span>
               <span style={{ paddingRight: 2 }}>(</span>
               {data.length}

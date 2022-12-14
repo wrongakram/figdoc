@@ -181,10 +181,12 @@ export const FDComponentCard = ({
   component: any;
   fileKey: any;
 }) => {
+  const router = useRouter();
+  const { system } = router.query;
   return (
     <ComponentCard
       href={{
-        pathname: `/design-system/${component.system}/component/${component?.id}`,
+        pathname: `/design-system/${system}/component/${component?.id}`,
       }}
     >
       <ComponentCoverImage fileKey={fileKey} nodeId={component.nodeId} />

@@ -25,7 +25,6 @@ const ProtectedRoute: NextApiHandler = async (req, res) => {
     req.body.email
   );
 
-  console.log(data);
   res.json(data);
 };
 

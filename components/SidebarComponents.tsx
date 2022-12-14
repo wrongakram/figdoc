@@ -424,19 +424,20 @@ const ComponentsList = ({ ds, setNumberOfComponents }) => {
         <SidebarSection>
           <NavigationMenu.Root>
             <NavMenuList>
-              {_.sortBy(data).map((componentItem: any) => {
-                console.log(componentItem.title);
-                return (
-                  <NavMenuItem key={componentItem.id}>
-                    <NavMenuExternalLink
-                      href={`/design-system/${system}/component/${componentItem?.id}`}
-                      active={component == componentItem.id}
-                    >
-                      {capitalizeFirstLetter(componentItem.title)}
-                    </NavMenuExternalLink>
-                  </NavMenuItem>
-                );
-              })}
+              {data
+                .sort((a, b) => a.title.localeCompare(b.title))
+                .map((componentItem: any) => {
+                  return (
+                    <NavMenuItem key={componentItem.id}>
+                      <NavMenuLink
+                        href={`/design-system/${system}/component/${componentItem?.id}`}
+                        active={component == componentItem.id}
+                      >
+                        {capitalizeFirstLetter(componentItem.title)}
+                      </NavMenuLink>
+                    </NavMenuItem>
+                  );
+                })}
             </NavMenuList>
           </NavigationMenu.Root>
         </SidebarSection>

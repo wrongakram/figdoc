@@ -127,13 +127,15 @@ const DesignSystemPage = ({ data }: DesignSystemData) => {
         </EmptyState>
       ) : (
         <PageGrid>
-          {data.component.map((component: any) => (
-            <FDComponentCard
-              key={component.id}
-              component={component}
-              fileKey={data.figma_file_key}
-            />
-          ))}
+          {data.component
+            .sort((a, b) => a.title.localeCompare(b.title))
+            .map((component: any) => (
+              <FDComponentCard
+                key={component.id}
+                component={component}
+                fileKey={data.figma_file_key}
+              />
+            ))}
         </PageGrid>
       )}
     </Page>
@@ -197,94 +199,4 @@ const EmptyState = styled("div", {
       },
     },
   },
-});
-
-// Create New Component
-
-const ComponentCoverImage = ({ fileKey, nodeId }: any) => {
-  const supabaseClient = useSupabaseClient();
-  const user = useUser();
-  const router = useRouter();
-  const { system } = router.query;
-
-  // States
-  const [allComponentThumbnails, setAllComponentThumbnails] = useState("");
-
-  const { data, error } = useSWR([
-    "https://api.figma.com/v1/files/" + fileKey + "/components",
-    {
-      method: "GET",
-      headers: {
-        "X-Figma-Token": process.env.NEXT_PUBLIC_FIGMA_TOKEN,
-      },
-    },
-  ]);
-
-  useEffect(() => {
-    if (data) {
-      let matchingComponents = _.filter(data.meta?.components, function (obj) {
-        return _.some(obj.containing_frame, { nodeId: nodeId });
-      });
-
-      setAllComponentThumbnails(matchingComponents[0]?.thumbnail_url);
-    }
-  }, [data]);
-
-  if (error) {
-    return (
-      <div className="cover">
-        <div className="img">No figma key specified</div>
-      </div>
-    );
-  }
-  if (!data)
-    return (
-      <div className="cover">
-        <div className="img">loading...</div>
-      </div>
-    );
-
-  return (
-    <div className="cover">
-      <div className="img">
-        {allComponentThumbnails ? (
-          <Image
-            // loader={myLoader}
-            src={allComponentThumbnails}
-            alt="Picture of the author"
-            layout="fill"
-            objectFit="contain"
-            quality={100}
-          />
-        ) : (
-          <ComponentVisual>
-            <Puzzle />
-          </ComponentVisual>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const ComponentVisual = styled("div", {
-  backgroundColor: "$gray4",
-  height: 60,
-  width: 60,
-  borderRadius: 20,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  margin: "0 auto",
-});
-
-const FigmaTag = styled("div", {
-  position: "absolute",
-  top: 6,
-  right: 6,
-  backgroundColor: "$violet3",
-  color: "$violet11",
-  padding: "4px 10px",
-  fontSize: 12,
-  fontWeight: 500,
-  borderRadius: 6,
 });

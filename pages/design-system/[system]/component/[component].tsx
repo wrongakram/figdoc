@@ -30,49 +30,7 @@ import Leaf from "../../../../components/editor/Leaf";
 import Element from "../../../../components/editor/Element";
 import isHotkey from "is-hotkey";
 import Editor from "../../../../components/editor/Editor";
-
-const HOTKEYS = {
-  "cmd+b": "bold",
-  "cmd+i": "italic",
-  "cmd+u": "underline",
-  "cmd+c": "code",
-};
-
-const isMarkActive = (editor, format) => {
-  return false;
-  // !!Editor.marks(editor) ? Editor.marks(editor)[format] : false;
-};
-
-const Button = ({ active, ...rest }) => {
-  return (
-    <span
-      {...rest}
-      className={`${active && "font-bold"} cursor-pointer mr-3 p-1`}
-    />
-  );
-};
-
-const ToolbarButton = ({ format, icon, setCurrentMark, toggleMark }) => {
-  const editor = useSlate();
-
-  useEffect(() => {
-    if (isMarkActive(editor, format)) {
-      setCurrentMark(format);
-    }
-  }, [editor, format]);
-
-  return (
-    <Button
-      active={isMarkActive(editor, format)}
-      onMouseDown={(event) => {
-        event.preventDefault();
-        toggleMark(editor, format);
-      }}
-    >
-      {icon}
-    </Button>
-  );
-};
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 // This gets called on every request
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
@@ -97,8 +55,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     .select("*")
     .filter("id", "eq", ctx.params?.system)
     .select("*, component (*)")
-    .eq("component.id", ctx.params?.component)
-    .limit(1)
+    .filter("component.id", "eq", ctx.params?.component)
     .single();
 
   return {
@@ -125,45 +82,39 @@ const Container = styled("div", {
 const ContainerChild = styled("div", {
   flex: 1,
   height: "100%",
+  display: "flex",
+  flexDirection: "column",
+  gap: "40px",
 });
 
-const Heading1 = styled("h1", {
-  fontSize: "$fontSizes$9",
-  fontWeight: "700",
-});
-
-const initialValue = [
-  {
-    type: "paragraph",
-    children: [{ text: "" }],
-  },
-];
-
-const ComponentPage = ({ data, designSystem }: any) => {
+const ComponentPage = ({ data }: any) => {
   const router = useRouter();
   const { component } = router.query;
+  const supabaseClient = useSupabaseClient();
+  const [realtimeComponentData, setRealtimeComponentData] = useState();
 
   const [currentMark, setCurrentMark] = useState(null);
   const [publishing, setPublishing] = useState(false);
   const [disabled, setDisabled] = useState(true);
-  const [savedState, setSavedState] = useState("Saving post");
+  const [savingStatus, setSavingStatus] = useState("idle");
 
   const renderElement = useCallback((props) => <Element {...props} />, []);
   const renderLeaf = useCallback((props) => <Leaf {...props} />, []);
 
   return (
     <Page css={{ padding: 0 }}>
-      {/* <pre>
-        <small> {JSON.stringify(data, null, 2)}</small>
-      </pre> */}
-      <Navbar data={data} />
+      <Navbar data={data} savingStatus={savingStatus} />
       <Container css={{ padding: "0 24px" }}>
         <ContainerChild>
-          <FigmaComponentPreview url={data.component[0].figma_url} />
+          <FigmaComponentPreview url={data?.component[0].figma_url} />
+          <ComponentFigmaProps designSystem={data} />
         </ContainerChild>
         <ContainerChild>
-          <Editor component={component} />
-          <ComponentFigmaProps designSystem={data} />
+          {data && (
+            <Editor component={component} setSavingStatus={setSavingStatus} />
+          )}
+
+          {/* <ComponentFigmaProps designSystem={data} /> */}
         </ContainerChild>
       </Container>
     </Page>
@@ -236,8 +187,6 @@ const ComponentFigmaProps = ({ designSystem }) => {
           ),
         };
       });
-
-      console.log(propsAndValues, "Properties");
 
       setVariantData(propsAndValues);
     }
