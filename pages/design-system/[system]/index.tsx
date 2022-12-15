@@ -99,6 +99,7 @@ const DesignSystemPage = ({ data }: DesignSystemData) => {
       <PageHeader>
         <div>
           <PageTitle>{data.title}</PageTitle>
+
           <PageDescription>{data.description}</PageDescription>
         </div>
         <CreateComponent>

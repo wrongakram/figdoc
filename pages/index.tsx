@@ -1,3 +1,6 @@
+// Styled
+import { styled } from "../stitches.config";
+
 // Next
 import { GetServerSidePropsContext } from "next";
 
@@ -11,24 +14,22 @@ import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 // Types
 import { DesignSystemData } from "../types";
 
+// Lodash
+import _ from "lodash";
+
 // Components
 import { Button } from "../components/FDButton";
-import {
-  Page,
-  PageHeader,
-  PageTitle,
-  PageDescription,
-  PageGrid,
-} from "../components/Core";
+import { Page, PageHeader, PageGrid } from "../components/Core";
 import CreateNewDesignSystemDialog from "../components/Modals/CreateDesignSystem";
-
-// Icons
-import { MailIn, Plus, Svg3DSelectFace } from "iconoir-react";
 import { FDDesignSystemCards } from "../components/FDCards";
-import { styled } from "../stitches.config";
-import _ from "lodash";
 import Spinner from "../components/Spinner";
 import Invites from "../components/invites";
+import { H2, H4, Subtitle } from "../components/primitives/Text";
+import { Flex } from "../components/primitives/structure";
+import { EmptyState } from "../components/primitives/EmptyState";
+
+// Icons
+import { Plus, Svg3DSelectFace } from "iconoir-react";
 
 // This gets called on every request
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
@@ -85,23 +86,21 @@ const Home = ({ user, data }: { data: DesignSystemData }) => {
     <Page>
       <PageHeader>
         <div>
-          <PageTitle>
-            Home <BetaLabel>Beta</BetaLabel>
-          </PageTitle>
-          <PageDescription>
-            👋 Welcome {user.user_metadata.name}
-          </PageDescription>
+          <Flex alignItemsCenter>
+            <H2>Home</H2> <BetaLabel>Beta</BetaLabel>
+          </Flex>
+          <Subtitle> 👋 Welcome {user.user_metadata.name}</Subtitle>
         </div>
-        <div style={{ display: "flex", gap: 16 }}>
+        <Flex style={{ gap: 16 }}>
           <Invites />
           <CreateNewDesignSystemDialog>
             <Button>
               <Plus /> Create
             </Button>
           </CreateNewDesignSystemDialog>
-        </div>
+        </Flex>
       </PageHeader>
-      <div>
+      <>
         {loading ? (
           <EmptyState>
             <Spinner color="black" />
@@ -110,7 +109,16 @@ const Home = ({ user, data }: { data: DesignSystemData }) => {
           <>
             {myDesignSystems.length != 0 ? (
               <>
-                <Heading3>My Design Systems</Heading3>
+                <H4
+                  css={{
+                    marginBottom: "$6",
+                    paddingTop: "$8",
+                    marginTop: "$8",
+                    borderTop: "1px solid $gray3",
+                  }}
+                >
+                  My Design Systems
+                </H4>
                 <PageGrid>
                   {myDesignSystems.map((system) => (
                     <FDDesignSystemCards key={system.id} system={system} />
@@ -144,7 +152,16 @@ const Home = ({ user, data }: { data: DesignSystemData }) => {
               </EmptyState>
             ) : (
               <>
-                <Heading3>Shared with me</Heading3>
+                <H4
+                  css={{
+                    marginBottom: "$6",
+                    paddingTop: "$8",
+                    marginTop: "$8",
+                    borderTop: "1px solid $gray3",
+                  }}
+                >
+                  Shared with me
+                </H4>
                 <PageGrid>
                   {sharedWithMeDesignSystems.map((system) => (
                     <FDDesignSystemCards key={system.id} system={system} />
@@ -154,20 +171,10 @@ const Home = ({ user, data }: { data: DesignSystemData }) => {
             )}
           </>
         )}
-      </div>
+      </>
     </Page>
   );
 };
-
-const Heading3 = styled("h3", {
-  fontSize: "$4",
-  fontWeight: 600,
-  color: "$gray12",
-  marginBottom: "$6",
-  paddingTop: "$8",
-  marginTop: "$8",
-  borderTop: "1px solid $gray3",
-});
 
 const BetaLabel = styled("div", {
   fontSize: 10,
@@ -182,60 +189,3 @@ const BetaLabel = styled("div", {
 });
 
 export default Home;
-
-const EmptyState = styled("div", {
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  textAlign: "center",
-  width: 560,
-  height: 320,
-  margin: "0 auto",
-
-  ".svg-container": {
-    background: "$gray3",
-    display: "flex",
-    alignCenter: "center",
-    justifyContent: "center",
-    padding: 16,
-    borderRadius: 16,
-    svg: {
-      width: 28,
-      height: 28,
-      color: "$gray500",
-    },
-  },
-  h3: {
-    fontSize: "$5",
-    fontWeight: 600,
-    color: "$gray12",
-    marginTop: "$4",
-  },
-
-  p: {
-    fontSize: "$3",
-    color: "$gray11",
-    marginTop: "$2",
-    span: {
-      cursor: "pointer",
-      color: "$gray12",
-      fontWeight: 500,
-      padding: 4,
-      borderRadius: 6,
-      "&:hover": {
-        background: "$gray3",
-      },
-    },
-    a: {
-      cursor: "pointer",
-      color: "$blue11",
-      fontWeight: 500,
-      padding: 4,
-      borderRadius: 6,
-      "&:hover": {
-        background: "$blue3",
-      },
-    },
-  },
-});

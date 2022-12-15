@@ -26,12 +26,8 @@ import Layout from "../components/Layout";
 
 // Icons
 import { IconoirProvider } from "iconoir-react";
-import { useRouter } from "next/router";
-
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function App({ Component, pageProps }: AppProps) {
-  const router = useRouter();
   const [supabaseClient] = useState(() => createBrowserSupabaseClient());
   // Multiple Layouts
 
@@ -59,18 +55,17 @@ export default function App({ Component, pageProps }: AppProps) {
                     fetch(resource, init).then((res) => res.json()),
                 }}
               >
-                {/* <ThemeProvider
-                attribute="class"
-                defaultTheme="light"
-                value={{
-                  dark: darkTheme,
-                }}
-              > */}
-                <Layout>
-                  <Component {...pageProps} />
-                </Layout>
-
-                {/* </ThemeProvider> */}
+                <ThemeProvider
+                  attribute="class"
+                  defaultTheme="light"
+                  value={{
+                    dark: darkTheme,
+                  }}
+                >
+                  <Layout>
+                    <Component {...pageProps} />
+                  </Layout>
+                </ThemeProvider>
               </SWRConfig>
             </IconoirProvider>
           </ToastContext.Provider>

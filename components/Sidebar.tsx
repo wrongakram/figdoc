@@ -281,7 +281,7 @@ const SidebarFooter = styled("div", {
 const DashboardSidebar = ({ setDesignSystemName }) => {
   const { theme, setTheme } = useTheme();
   const toggleTheme = () => {
-    // setTheme(theme == "light" ? "dark" : "light");
+    setTheme(theme == "light" ? "dark" : "light");
   };
 
   const router = useRouter();
