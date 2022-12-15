@@ -1,4 +1,5 @@
 import React from "react";
+import { EditorPlayground } from "../components/editor/EditorPlayground";
 
 import {
   H1,
@@ -21,6 +22,7 @@ const guide = () => {
       <Subtitle>Subtitle</Subtitle>
       <P>This is a paragraph tag</P>
       <P apprance={"secondary"}>This is a paragraph tag with secondary color</P>
+      <EditorPlayground />
     </div>
   );
 };

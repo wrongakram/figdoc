@@ -26,6 +26,15 @@ import Element from "../../../../components/editor/Element";
 import isHotkey from "is-hotkey";
 import Editor from "../../../../components/editor/Editor";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { EditorPlayground } from "../../../../components/editor/EditorPlayground";
+
+import dynamic from "next/dynamic";
+const ComponentEditor = dynamic(
+  () => import("../../../../components/editor/Editor"),
+  {
+    ssr: false,
+  }
+);
 
 // This gets called on every request
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
@@ -117,7 +126,7 @@ const ComponentPage = ({ data, componentDocumentation }: any) => {
           <ComponentFigmaProps designSystem={data} />
         </ContainerChild>
         <ContainerChild key={data.component[0].id}>
-          <Editor
+          <ComponentEditor
             data={data}
             componentDocumentation={componentDocumentation}
             component={component}

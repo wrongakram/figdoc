@@ -5,20 +5,50 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Slate, Editable, withReact } from "slate-react";
+
+// Slate
+
+import { Slate, Editable, withReact, useSlate, useFocused } from "slate-react";
 import {
   Transforms,
   createEditor,
   Node,
   Element as SlateElement,
+  Text,
   Descendant,
+  Range,
+  Editor,
 } from "slate";
 import { withHistory } from "slate-history";
+
+// Next
 import { useRouter } from "next/router";
-import useSWR, { useSWRConfig } from "swr";
+import { useSWRConfig } from "swr";
+
+// Supabase
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
+
+// Lodash
 import _ from "lodash";
+
+// HotKeys
+import isHotkey from "is-hotkey";
+
+// Components
 import Spinner from "../Spinner";
+import { Button, Icon, Portal } from "./components";
+import { styled } from "@stitches/react";
+import { Bold, Italic, Underline } from "iconoir-react";
+
+const HOTKEYS = {
+  "mod+b": "bold",
+  "mod+i": "italic",
+  "mod+u": "underline",
+  "mod+`": "code",
+};
+
+const LIST_TYPES = ["numbered-list", "bulleted-list"];
+const TEXT_ALIGN_TYPES = ["left", "center", "right", "justify"];
 
 const withLayout = (editor) => {
   const { normalizeNode } = editor;
@@ -73,7 +103,7 @@ const withLayout = (editor) => {
   return editor;
 };
 
-const Editor = ({
+const ComponentEditor = ({
   data,
   setSavingStatus,
   readOnly,
@@ -81,19 +111,25 @@ const Editor = ({
 }: any) => {
   const router = useRouter();
   const { system, component: componentId } = router.query;
-  const supabaseClient = useSupabaseClient();
+  const supabase = useSupabaseClient();
   const { mutate } = useSWRConfig();
 
   const renderElement = useCallback((props) => <Element {...props} />, []);
+  const renderLeaf = useCallback((props) => <Leaf {...props} />, []);
 
-  const [editor] = useState(() =>
-    withHistory(withLayout(withReact(createEditor())))
+  const editor = useMemo(
+    () => withHistory(withLayout(withReact(createEditor()))),
+    []
   );
+
+  // const [editor] = useState(() =>
+  //   withHistory(withLayout(withReact(createEditor())))
+  // );
 
   const saveContent = async (content, id) => {
     try {
       setSavingStatus("saving");
-      const { error } = await supabaseClient
+      const { error } = await supabase
         .from("component")
         .update([
           {
@@ -157,11 +193,27 @@ const Editor = ({
             }
           }}
         >
+          <HoveringToolbar />
+
           <Editable
             renderElement={renderElement}
+            renderLeaf={renderLeaf}
             placeholder="Enter a title…"
             spellCheck
             readOnly={readOnly}
+            onDOMBeforeInput={(event: InputEvent) => {
+              switch (event.inputType) {
+                case "formatBold":
+                  event.preventDefault();
+                  return toggleFormat(editor, "bold");
+                case "formatItalic":
+                  event.preventDefault();
+                  return toggleFormat(editor, "italic");
+                case "formatUnderline":
+                  event.preventDefault();
+                  return toggleFormat(editor, "underlined");
+              }
+            }}
           />
         </Slate>
       ) : (
@@ -189,4 +241,121 @@ const Element = ({ attributes, children, element }) => {
   }
 };
 
-export default Editor;
+const toggleFormat = (editor, format) => {
+  const isActive = isFormatActive(editor, format);
+  Transforms.setNodes(
+    editor,
+    { [format]: isActive ? null : true },
+    { match: Text.isText, split: true }
+  );
+};
+
+const isFormatActive = (editor, format) => {
+  const [match] = Editor.nodes(editor, {
+    match: (n) => n[format] === true,
+    mode: "all",
+  });
+  return !!match;
+};
+
+const Leaf = ({ attributes, children, leaf }) => {
+  if (leaf.bold) {
+    children = <strong>{children}</strong>;
+  }
+
+  if (leaf.italic) {
+    children = <em>{children}</em>;
+  }
+
+  if (leaf.underlined) {
+    children = <u>{children}</u>;
+  }
+
+  return <span {...attributes}>{children}</span>;
+};
+
+const HoveringToolbar = () => {
+  const ref = useRef<HTMLDivElement | null>();
+  const editor = useSlate();
+  const inFocus = useFocused();
+
+  useEffect(() => {
+    const el = ref.current;
+    const { selection } = editor;
+
+    if (!el) {
+      return;
+    }
+
+    if (
+      !selection ||
+      !inFocus ||
+      Range.isCollapsed(selection) ||
+      Editor.string(editor, selection) === ""
+    ) {
+      el.removeAttribute("style");
+      return;
+    }
+
+    const domSelection = window.getSelection();
+    const domRange = domSelection.getRangeAt(0);
+    const rect = domRange.getBoundingClientRect();
+    el.style.opacity = "1";
+    el.style.top = `${rect.top + window.pageYOffset - el.offsetHeight}px`;
+    el.style.left = `${
+      rect.left + window.pageXOffset - el.offsetWidth / 2 + rect.width / 2
+    }px`;
+  });
+
+  return (
+    <Portal>
+      <Menu
+        ref={ref}
+        onMouseDown={(e) => {
+          // prevent toolbar from taking focus away from editor
+          e.preventDefault();
+        }}
+      >
+        <FormatButton format="bold">
+          <Bold />
+        </FormatButton>
+
+        <FormatButton format="italic">
+          <Italic />
+        </FormatButton>
+
+        <FormatButton format="underlined">
+          <Underline />
+        </FormatButton>
+      </Menu>
+    </Portal>
+  );
+};
+
+const Menu = styled("div", {
+  padding: "8px 7px 6px",
+  position: "absolute",
+  zIndex: 1,
+  top: -10000,
+  left: -10000,
+  marginTop: -6,
+  opacity: 0,
+  background: "#222",
+  borderRadius: 4,
+  transition: "opacity 0.75s",
+});
+
+const FormatButton = ({ format, children }) => {
+  const editor = useSlate();
+  return (
+    <button
+      reversed
+      active={isFormatActive(editor, format)}
+      onClick={() => toggleFormat(editor, format)}
+    >
+      {children}
+    </button>
+  );
+};
+
+export default ComponentEditor;
