@@ -100,7 +100,6 @@ const ComponentPage = ({ data, componentDocumentation }: any) => {
   const [currentMark, setCurrentMark] = useState(null);
   const [publishing, setPublishing] = useState(false);
   const [disabled, setDisabled] = useState(true);
-  const [savingStatus, setSavingStatus] = useState("idle");
   const [readOnly, setReadOnly] = useState(true);
 
   const renderElement = useCallback((props) => <Element {...props} />, []);
@@ -114,25 +113,19 @@ const ComponentPage = ({ data, componentDocumentation }: any) => {
 
   return (
     <Page css={{ padding: 0 }}>
-      <Navbar
-        data={data}
-        savingStatus={savingStatus}
-        readOnly={readOnly}
-        setReadOnly={setReadOnly}
-      />
+      <Navbar data={data} readOnly={readOnly} setReadOnly={setReadOnly} />
       <Container css={{ padding: "0 24px" }}>
         <ContainerChild>
           <FigmaComponentPreview url={data?.component[0].figma_url} />
-          <ComponentFigmaProps designSystem={data} />
         </ContainerChild>
-        <ContainerChild key={data.component[0].id}>
+        <ContainerChild key={data.component[0].id} css={{ gap: 16 }}>
           <ComponentEditor
             data={data}
             componentDocumentation={componentDocumentation}
             component={component}
-            setSavingStatus={setSavingStatus}
             readOnly={readOnly}
           />
+          <ComponentFigmaProps designSystem={data} />
         </ContainerChild>
       </Container>
     </Page>
@@ -216,49 +209,47 @@ const ComponentFigmaProps = ({ designSystem }) => {
   if (!figmaData) return "";
 
   return (
-    <div>
-      <PropTable>
-        <PropTableHeader>
-          <PropTableHeaderCell>Property</PropTableHeaderCell>
-          <PropTableHeaderCell>Value</PropTableHeaderCell>
-          <PropTableHeaderCell>Type</PropTableHeaderCell>
-        </PropTableHeader>
-        <PropTableBody>
-          {variantData?.map((variant) => {
-            return (
-              // eslint-disable-next-line react/jsx-key
-              <PropTableRow>
-                <PropTableCell>{_.keys(variant)}</PropTableCell>
-                <PropTableCell>
-                  {_.values(variant).map((value) => {
-                    let a = _.split(value, ",");
-                    return a.map((v, id) => <span key={id}>{v}</span>);
-                  })}
-                </PropTableCell>
-                <PropTableCell>
-                  {_.values(variant).map((value) => {
-                    let a = _.split(value, ",");
-                    return a.map((v, id) => (
-                      <>
-                        {v === "True" || v === "False" ? (
-                          <span className="type" key={id}>
-                            Boolean
-                          </span>
-                        ) : (
-                          <span className="type" key={id}>
-                            String
-                          </span>
-                        )}
-                      </>
-                    ));
-                  })}
-                </PropTableCell>
-              </PropTableRow>
-            );
-          })}
-        </PropTableBody>
-      </PropTable>
-    </div>
+    <PropTable>
+      <PropTableHeader>
+        <PropTableHeaderCell>Property</PropTableHeaderCell>
+        <PropTableHeaderCell>Value</PropTableHeaderCell>
+        <PropTableHeaderCell>Type</PropTableHeaderCell>
+      </PropTableHeader>
+      <PropTableBody>
+        {variantData?.map((variant) => {
+          return (
+            // eslint-disable-next-line react/jsx-key
+            <PropTableRow>
+              <PropTableCell>{_.keys(variant)}</PropTableCell>
+              <PropTableCell>
+                {_.values(variant).map((value) => {
+                  let a = _.split(value, ",");
+                  return a.map((v, id) => <span key={id}>{v}</span>);
+                })}
+              </PropTableCell>
+              <PropTableCell>
+                {_.values(variant).map((value) => {
+                  let a = _.split(value, ",");
+                  return a.map((v, id) => (
+                    <>
+                      {v === "True" || v === "False" ? (
+                        <span className="type" key={id}>
+                          Boolean
+                        </span>
+                      ) : (
+                        <span className="type" key={id}>
+                          String
+                        </span>
+                      )}
+                    </>
+                  ));
+                })}
+              </PropTableCell>
+            </PropTableRow>
+          );
+        })}
+      </PropTableBody>
+    </PropTable>
   );
 };
 

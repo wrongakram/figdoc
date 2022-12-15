@@ -6,6 +6,9 @@ import React, {
   useState,
 } from "react";
 
+import * as Toolbar from "@radix-ui/react-toolbar";
+import { violet, blackA, mauve } from "@radix-ui/colors";
+
 // Slate
 
 import { Slate, Editable, withReact, useSlate, useFocused } from "slate-react";
@@ -38,7 +41,24 @@ import isHotkey from "is-hotkey";
 import Spinner from "../Spinner";
 import { Button, Icon, Portal } from "./components";
 import { styled } from "@stitches/react";
-import { Bold, Italic, Underline } from "iconoir-react";
+import {
+  AlignCenter,
+  AlignJustify,
+  AlignRight,
+  Bold,
+  CenterAlign,
+  Code,
+  Italic,
+  List,
+  NumberedListLeft,
+  TerminalOutline,
+  Underline,
+} from "iconoir-react";
+
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import { contentStyles, DropdownMenuItem } from "../DropdownMenu";
+import { H4 } from "../primitives/Text";
+import { Flex } from "../primitives/structure";
 
 const HOTKEYS = {
   "mod+b": "bold",
@@ -64,11 +84,19 @@ const withLayout = (editor) => {
       }
 
       if (editor.children.length < 2) {
+        const description: DescriptionElement = {
+          type: "description",
+          children: [{ text: "Enter description here..." }],
+        };
+        Transforms.insertNodes(editor, description, { at: path.concat(1) });
+      }
+
+      if (editor.children.length < 3) {
         const paragraph: ParagraphElement = {
           type: "paragraph",
           children: [{ text: "" }],
         };
-        Transforms.insertNodes(editor, paragraph, { at: path.concat(1) });
+        Transforms.insertNodes(editor, paragraph, { at: path.concat(2) });
       }
 
       for (const [child, childPath] of Node.children(editor, path)) {
@@ -89,6 +117,10 @@ const withLayout = (editor) => {
             enforceType(type);
             break;
           case 1:
+            type = "description";
+            enforceType(type);
+            break;
+          case 2:
             type = "paragraph";
             enforceType(type);
           default:
@@ -103,16 +135,13 @@ const withLayout = (editor) => {
   return editor;
 };
 
-const ComponentEditor = ({
-  data,
-  setSavingStatus,
-  readOnly,
-  componentDocumentation,
-}: any) => {
+const ComponentEditor = ({ data, readOnly, componentDocumentation }: any) => {
   const router = useRouter();
   const { system, component: componentId } = router.query;
   const supabase = useSupabaseClient();
   const { mutate } = useSWRConfig();
+
+  const [savingStatus, setSavingStatus] = useState("idle");
 
   const renderElement = useCallback((props) => <Element {...props} />, []);
   const renderLeaf = useCallback((props) => <Leaf {...props} />, []);
@@ -193,7 +222,54 @@ const ComponentEditor = ({
             }
           }}
         >
-          <HoveringToolbar />
+          {!readOnly && (
+            <ToolbarRoot aria-label="Formatting options">
+              <Toolbar.ToggleGroup type="multiple" aria-label="Text formatting">
+                <BlockButton format="heading-one">
+                  <TextIcon>H1</TextIcon>
+                </BlockButton>
+                <BlockButton format="heading-two">
+                  <TextIcon>H2</TextIcon>
+                </BlockButton>
+              </Toolbar.ToggleGroup>
+              <ToolbarSeparator />
+              <Toolbar.ToggleGroup type="multiple" aria-label="Text formatting">
+                <MarkButton format="bold">
+                  <Bold />
+                </MarkButton>
+                <MarkButton format="italic">
+                  <Italic />
+                </MarkButton>
+                <MarkButton format="underline">
+                  <Underline />
+                </MarkButton>
+                <MarkButton format="code">
+                  <Code />
+                </MarkButton>
+              </Toolbar.ToggleGroup>
+              <ToolbarSeparator />
+              <Toolbar.ToggleGroup type="single" aria-label="Text formatting">
+                <BlockButton format="numbered-list">
+                  <NumberedListLeft />
+                </BlockButton>
+                <BlockButton format="bulleted-list">
+                  <List />
+                </BlockButton>
+              </Toolbar.ToggleGroup>
+              <Flex
+                alignItemsCenter
+                css={{ marginLeft: "auto", marginRight: 8 }}
+              >
+                {savingStatus === "idle" ? null : savingStatus === "saving" ? (
+                  <SaveMessage>Saving...</SaveMessage>
+                ) : savingStatus === "saved" ? (
+                  <SaveMessage>Saved!</SaveMessage>
+                ) : savingStatus === "error" ? (
+                  <SaveMessage>Error... couldn't save</SaveMessage>
+                ) : null}
+              </Flex>
+            </ToolbarRoot>
+          )}
 
           <Editable
             renderElement={renderElement}
@@ -201,17 +277,13 @@ const ComponentEditor = ({
             placeholder="Enter a title…"
             spellCheck
             readOnly={readOnly}
-            onDOMBeforeInput={(event: InputEvent) => {
-              switch (event.inputType) {
-                case "formatBold":
+            onKeyDown={(event) => {
+              for (const hotkey in HOTKEYS) {
+                if (isHotkey(hotkey, event as any)) {
                   event.preventDefault();
-                  return toggleFormat(editor, "bold");
-                case "formatItalic":
-                  event.preventDefault();
-                  return toggleFormat(editor, "italic");
-                case "formatUnderline":
-                  event.preventDefault();
-                  return toggleFormat(editor, "underlined");
+                  const mark = HOTKEYS[hotkey];
+                  toggleMark(editor, mark);
+                }
               }
             }}
           />
@@ -232,30 +304,135 @@ const ComponentEditor = ({
   );
 };
 
-const Element = ({ attributes, children, element }) => {
-  switch (element.type) {
-    case "title":
-      return <h1 {...attributes}>{children}</h1>;
-    case "paragraph":
-      return <p {...attributes}>{children}</p>;
+const toggleBlock = (editor, format) => {
+  const isActive = isBlockActive(
+    editor,
+    format,
+    TEXT_ALIGN_TYPES.includes(format) ? "align" : "type"
+  );
+  const isList = LIST_TYPES.includes(format);
+
+  Transforms.unwrapNodes(editor, {
+    match: (n) =>
+      !Editor.isEditor(n) &&
+      SlateElement.isElement(n) &&
+      LIST_TYPES.includes(n.type) &&
+      !TEXT_ALIGN_TYPES.includes(format),
+    split: true,
+  });
+  let newProperties: Partial<SlateElement>;
+  if (TEXT_ALIGN_TYPES.includes(format)) {
+    newProperties = {
+      align: isActive ? undefined : format,
+    };
+  } else {
+    newProperties = {
+      type: isActive ? "paragraph" : isList ? "list-item" : format,
+    };
+  }
+  Transforms.setNodes<SlateElement>(editor, newProperties);
+
+  if (!isActive && isList) {
+    const block = { type: format, children: [] };
+    Transforms.wrapNodes(editor, block);
   }
 };
 
-const toggleFormat = (editor, format) => {
-  const isActive = isFormatActive(editor, format);
-  Transforms.setNodes(
-    editor,
-    { [format]: isActive ? null : true },
-    { match: Text.isText, split: true }
-  );
+const toggleMark = (editor, format) => {
+  const isActive = isMarkActive(editor, format);
+
+  if (isActive) {
+    Editor.removeMark(editor, format);
+  } else {
+    Editor.addMark(editor, format, true);
+  }
 };
 
-const isFormatActive = (editor, format) => {
-  const [match] = Editor.nodes(editor, {
-    match: (n) => n[format] === true,
-    mode: "all",
-  });
+const isBlockActive = (editor, format, blockType = "type") => {
+  const { selection } = editor;
+  if (!selection) return false;
+
+  const [match] = Array.from(
+    Editor.nodes(editor, {
+      at: Editor.unhangRange(editor, selection),
+      match: (n) =>
+        !Editor.isEditor(n) &&
+        SlateElement.isElement(n) &&
+        n[blockType] === format,
+    })
+  );
+
   return !!match;
+};
+
+const isMarkActive = (editor, format) => {
+  const marks = Editor.marks(editor);
+  return marks ? marks[format] === true : false;
+};
+
+const Element = ({ attributes, children, element }) => {
+  const style = { textAlign: element.align };
+  switch (element.type) {
+    case "title":
+      return (
+        <h1 style={{ fontSize: "40px" }} {...attributes}>
+          {children}
+        </h1>
+      );
+    case "description":
+      return (
+        <H4
+          css={{ fontWeight: 400, color: "$gray10", marginTop: 8 }}
+          {...attributes}
+        >
+          {children}
+        </H4>
+      );
+    case "paragraph":
+      return <div {...attributes}>{children}</div>;
+    case "block-quote":
+      return (
+        <blockquote style={style} {...attributes}>
+          {children}
+        </blockquote>
+      );
+    case "bulleted-list":
+      return (
+        <ul style={style} {...attributes}>
+          {children}
+        </ul>
+      );
+    case "heading-one":
+      return (
+        <h1 style={style} {...attributes}>
+          {children}
+        </h1>
+      );
+    case "heading-two":
+      return (
+        <h2 style={style} {...attributes}>
+          {children}
+        </h2>
+      );
+    case "list-item":
+      return (
+        <li style={style} {...attributes}>
+          {children}
+        </li>
+      );
+    case "numbered-list":
+      return (
+        <ol style={style} {...attributes}>
+          {children}
+        </ol>
+      );
+    default:
+      return (
+        <p style={style} {...attributes}>
+          {children}
+        </p>
+      );
+  }
 };
 
 const Leaf = ({ attributes, children, leaf }) => {
@@ -263,99 +440,169 @@ const Leaf = ({ attributes, children, leaf }) => {
     children = <strong>{children}</strong>;
   }
 
+  if (leaf.code) {
+    children = <CodeBlock>{children} </CodeBlock>;
+  }
+
   if (leaf.italic) {
     children = <em>{children}</em>;
   }
 
-  if (leaf.underlined) {
+  if (leaf.underline) {
     children = <u>{children}</u>;
   }
 
   return <span {...attributes}>{children}</span>;
 };
 
-const HoveringToolbar = () => {
-  const ref = useRef<HTMLDivElement | null>();
+const BlockButton = ({ format, children }) => {
   const editor = useSlate();
-  const inFocus = useFocused();
-
-  useEffect(() => {
-    const el = ref.current;
-    const { selection } = editor;
-
-    if (!el) {
-      return;
-    }
-
-    if (
-      !selection ||
-      !inFocus ||
-      Range.isCollapsed(selection) ||
-      Editor.string(editor, selection) === ""
-    ) {
-      el.removeAttribute("style");
-      return;
-    }
-
-    const domSelection = window.getSelection();
-    const domRange = domSelection.getRangeAt(0);
-    const rect = domRange.getBoundingClientRect();
-    el.style.opacity = "1";
-    el.style.top = `${rect.top + window.pageYOffset - el.offsetHeight}px`;
-    el.style.left = `${
-      rect.left + window.pageXOffset - el.offsetWidth / 2 + rect.width / 2
-    }px`;
-  });
-
   return (
-    <Portal>
-      <Menu
-        ref={ref}
-        onMouseDown={(e) => {
-          // prevent toolbar from taking focus away from editor
-          e.preventDefault();
-        }}
-      >
-        <FormatButton format="bold">
-          <Bold />
-        </FormatButton>
+    <ToolbarToggleItem
+      value="bold"
+      aria-label="Bold"
+      data-state={
+        isBlockActive(
+          editor,
+          format,
+          TEXT_ALIGN_TYPES.includes(format) ? "align" : "type"
+        )
+          ? "on"
+          : "off"
+      }
+      onMouseDown={(event) => {
+        event.preventDefault();
+        toggleBlock(editor, format);
+      }}
+    >
+      {children}
+    </ToolbarToggleItem>
+  );
+};
 
-        <FormatButton format="italic">
-          <Italic />
-        </FormatButton>
-
-        <FormatButton format="underlined">
-          <Underline />
-        </FormatButton>
-      </Menu>
-    </Portal>
+const MarkButton = ({ format, children }) => {
+  const editor = useSlate();
+  return (
+    <ToolbarToggleItem
+      active={isMarkActive(editor, format)}
+      data-state={isMarkActive(editor, format) ? "on" : "off"}
+      onMouseDown={(event) => {
+        event.preventDefault();
+        toggleMark(editor, format);
+      }}
+    >
+      {children}
+    </ToolbarToggleItem>
   );
 };
 
 const Menu = styled("div", {
-  padding: "8px 7px 6px",
   position: "absolute",
   zIndex: 1,
   top: -10000,
   left: -10000,
   marginTop: -6,
   opacity: 0,
-  background: "#222",
-  borderRadius: 4,
-  transition: "opacity 0.75s",
 });
 
-const FormatButton = ({ format, children }) => {
-  const editor = useSlate();
-  return (
-    <button
-      reversed
-      active={isFormatActive(editor, format)}
-      onClick={() => toggleFormat(editor, format)}
-    >
-      {children}
-    </button>
-  );
-};
+const DropdownMenuContent = styled(DropdownMenu.Content, contentStyles);
 
 export default ComponentEditor;
+
+const ToolbarRoot = styled(Toolbar.Root, {
+  display: "flex",
+  padding: 6,
+  width: "100%",
+  minWidth: "max-content",
+  borderRadius: 6,
+  backgroundColor: "white",
+  boxShadow: `0 2px 10px #eee`,
+  border: "1px solid $gray4",
+});
+
+const itemStyles = {
+  all: "unset",
+  flex: "0 0 auto",
+  color: "$gray11",
+  height: 28,
+  width: 28,
+  borderRadius: 8,
+  display: "inline-flex",
+  fontSize: 12,
+  lineHeight: 1,
+  alignItems: "center",
+  justifyContent: "center",
+  "&:hover": { backgroundColor: violet.violet3, color: violet.violet11 },
+  "&:focus": { position: "relative", boxShadow: `0 0 0 2px ${violet.violet7}` },
+};
+
+const ToolbarToggleItem = styled(Toolbar.ToggleItem, {
+  ...itemStyles,
+  backgroundColor: "white",
+  marginLeft: 2,
+  "&:first-child": { marginLeft: 0 },
+  "&[data-state=on]": {
+    backgroundColor: violet.violet5,
+    color: violet.violet11,
+  },
+
+  variants: {
+    active: {
+      true: {
+        backgroundColor: violet.violet5,
+        color: violet.violet11,
+      },
+    },
+  },
+});
+
+const ToolbarSeparator = styled(Toolbar.Separator, {
+  width: 1,
+  backgroundColor: "$gray6",
+  margin: "4px 8px",
+});
+
+const ToolbarLink = styled(
+  Toolbar.Link,
+  {
+    ...itemStyles,
+    backgroundColor: "transparent",
+    color: "$gray11",
+    display: "inline-flex",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  { "&:hover": { backgroundColor: "transparent", cursor: "pointer" } }
+);
+
+const ToolbarButton = styled(
+  Toolbar.Button,
+  {
+    ...itemStyles,
+    paddingLeft: 10,
+    paddingRight: 10,
+    color: "white",
+    backgroundColor: violet.violet9,
+  },
+  { "&:hover": { backgroundColor: violet.violet10 } }
+);
+
+const TextIcon = styled("span", {
+  fontSize: 16,
+  lineHeight: 1,
+});
+
+const CodeBlock = styled("code", {
+  background: "$gray3",
+  padding: "4px 0 4px 8px",
+  borderRadius: 4,
+  fontFamily: "SF mono, monospace",
+  fontSize: "$2",
+  color: "$red11",
+  minWidth: "max-content",
+});
+
+const SaveMessage = styled("span", {
+  fontSize: 14,
+  color: "$gray9",
+});

@@ -56,7 +56,7 @@ const ComponentDropdown = ({ children }) => {
   );
 };
 
-const Navbar = ({ data, savingStatus, readOnly, setReadOnly }: any) => {
+const Navbar = ({ data, readOnly, setReadOnly }: any) => {
   return (
     <NavContainer>
       <Breadcrumb>
@@ -70,16 +70,6 @@ const Navbar = ({ data, savingStatus, readOnly, setReadOnly }: any) => {
       </Breadcrumb>
 
       <NavActions>
-        <div style={{ marginRight: 6 }}>
-          {savingStatus === "idle" ? null : savingStatus === "saving" ? (
-            <SaveMessage>Saving...</SaveMessage>
-          ) : savingStatus === "saved" ? (
-            <SaveMessage>Saved!</SaveMessage>
-          ) : savingStatus === "error" ? (
-            <SaveMessage>Error... couldn't save</SaveMessage>
-          ) : null}
-        </div>
-
         <Button
           apperance={"ghost"}
           size={"small"}

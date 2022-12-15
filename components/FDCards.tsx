@@ -169,7 +169,6 @@ export const FDDesignSystemCards = ({ system }: { system: DesignSystem }) => {
           <MoreHoriz width={18} />
         </IconButton>
       </DesignSystemCardDropdown>
-      {/* <FDDropdownMenu id={system.id} /> */}
     </Card>
   );
 };

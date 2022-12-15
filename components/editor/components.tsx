@@ -23,7 +23,7 @@ export const Button = React.forwardRef(
       } & BaseProps
     >,
     ref: Ref<OrNull<HTMLSpanElement>>
-  ) => <span {...props} ref={ref} />
+  ) => <span {...props} ref={ref} style={{ color: active ? "red" : "black" }} />
 );
 
 export const EditorValue = React.forwardRef(

@@ -43,7 +43,7 @@ const slideLeftAndFade = keyframes({
   "100%": { opacity: 1, transform: "translateX(0)" },
 });
 
-const contentStyles = {
+export const contentStyles = {
   minWidth: 240,
   border: "1px solid $gray5",
   backgroundColor: "white",
