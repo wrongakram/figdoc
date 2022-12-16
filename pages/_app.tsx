@@ -18,6 +18,7 @@ import NextNProgress from "nextjs-progressbar";
 
 // Context
 import ToastContext from "../context/ToastContext";
+import { ProfileProvider } from "../context/ProfileContext";
 
 // Tooltip
 import * as Tooltip from "@radix-ui/react-tooltip";
@@ -38,39 +39,41 @@ export default function App({ Component, pageProps }: AppProps) {
       supabaseClient={supabaseClient}
       initialSession={pageProps.initialSession}
     >
-      <Tooltip.Provider delayDuration={250} skipDelayDuration={600}>
-        <Toast.Provider swipeDirection="right">
-          <ToastContext.Provider
-            value={{ createDesignSystemToast, setCreateDesignSystemToast }}
-          >
-            <IconoirProvider
-              iconProps={{
-                color: "$gray11",
-                strokeWidth: 1.75,
-              }}
+      <ProfileProvider>
+        <Tooltip.Provider delayDuration={250} skipDelayDuration={600}>
+          <Toast.Provider swipeDirection="right">
+            <ToastContext.Provider
+              value={{ createDesignSystemToast, setCreateDesignSystemToast }}
             >
-              <SWRConfig
-                value={{
-                  fetcher: (resource, init) =>
-                    fetch(resource, init).then((res) => res.json()),
+              <IconoirProvider
+                iconProps={{
+                  color: "$gray11",
+                  strokeWidth: 1.75,
                 }}
               >
-                <ThemeProvider
-                  attribute="class"
-                  defaultTheme="light"
+                <SWRConfig
                   value={{
-                    dark: darkTheme,
+                    fetcher: (resource, init) =>
+                      fetch(resource, init).then((res) => res.json()),
                   }}
                 >
-                  <Layout>
-                    <Component {...pageProps} />
-                  </Layout>
-                </ThemeProvider>
-              </SWRConfig>
-            </IconoirProvider>
-          </ToastContext.Provider>
-        </Toast.Provider>
-      </Tooltip.Provider>
+                  <ThemeProvider
+                    attribute="class"
+                    defaultTheme="light"
+                    value={{
+                      dark: darkTheme,
+                    }}
+                  >
+                    <Layout>
+                      <Component {...pageProps} />
+                    </Layout>
+                  </ThemeProvider>
+                </SWRConfig>
+              </IconoirProvider>
+            </ToastContext.Provider>
+          </Toast.Provider>
+        </Tooltip.Provider>
+      </ProfileProvider>
     </SessionContextProvider>
   );
 }

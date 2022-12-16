@@ -9,7 +9,7 @@ import {
 } from "iconoir-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
 import { styled } from "../stitches.config";
 
@@ -30,6 +30,7 @@ import {
 import FDSystemIcon from "./FDSystemIcon";
 import Image from "next/image";
 import Spinner from "./Spinner";
+import { useProfileStore } from "../context/ProfileContext";
 
 const ComponentCard = styled(Link, {
   position: "relative",
@@ -183,6 +184,7 @@ export const FDComponentCard = ({
 }) => {
   const router = useRouter();
   const { system } = router.query;
+
   return (
     <ComponentCard
       href={{
@@ -190,6 +192,7 @@ export const FDComponentCard = ({
       }}
     >
       <ComponentCoverImage fileKey={fileKey} nodeId={component.nodeId} />
+
       {!component.nodeId && <FigmaTag>CUSTOM</FigmaTag>}
       <div className="content">
         <div style={{ display: "flex" }}>
@@ -211,6 +214,8 @@ export const FDComponentCard = ({
 const ComponentCoverImage = ({ fileKey, nodeId }: any) => {
   const router = useRouter();
 
+  const { data: figmaToken } = useProfileStore();
+
   // States
   const [allComponentThumbnails, setAllComponentThumbnails] = useState("");
 
@@ -219,7 +224,7 @@ const ComponentCoverImage = ({ fileKey, nodeId }: any) => {
     {
       method: "GET",
       headers: {
-        "X-Figma-Token": process.env.NEXT_PUBLIC_FIGMA_TOKEN,
+        "X-Figma-Token": figmaToken?.figma_token,
       },
     },
   ]);

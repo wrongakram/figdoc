@@ -29,6 +29,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { EditorPlayground } from "../../../../components/editor/EditorPlayground";
 
 import dynamic from "next/dynamic";
+import ComponentFigmaProps from "../../../../components/ComponentProps";
 const ComponentEditor = dynamic(
   () => import("../../../../components/editor/Editor"),
   {
@@ -101,6 +102,7 @@ const ComponentPage = ({ data, componentDocumentation }: any) => {
   const [publishing, setPublishing] = useState(false);
   const [disabled, setDisabled] = useState(true);
   const [readOnly, setReadOnly] = useState(true);
+  const [showFigmaProps, setShowFigmaProps] = useState(true);
 
   const renderElement = useCallback((props) => <Element {...props} />, []);
   const renderLeaf = useCallback((props) => <Leaf {...props} />, []);
@@ -113,7 +115,13 @@ const ComponentPage = ({ data, componentDocumentation }: any) => {
 
   return (
     <Page css={{ padding: 0 }}>
-      <Navbar data={data} readOnly={readOnly} setReadOnly={setReadOnly} />
+      <Navbar
+        data={data}
+        readOnly={readOnly}
+        setReadOnly={setReadOnly}
+        showFigmaProps={showFigmaProps}
+        setShowFigmaProps={setShowFigmaProps}
+      />
       <Container css={{ padding: "0 24px" }}>
         <ContainerChild>
           <FigmaComponentPreview url={data?.component[0].figma_url} />
@@ -125,7 +133,7 @@ const ComponentPage = ({ data, componentDocumentation }: any) => {
             component={component}
             readOnly={readOnly}
           />
-          <ComponentFigmaProps designSystem={data} />
+          {showFigmaProps && <ComponentFigmaProps designSystem={data} />}
         </ContainerChild>
       </Container>
     </Page>
@@ -135,174 +143,6 @@ const ComponentPage = ({ data, componentDocumentation }: any) => {
 export default ComponentPage;
 
 // FIGMA COMPONENT PROPS
-
-const ComponentFigmaProps = ({ designSystem }) => {
-  const [variantData, setVariantData] = useState();
-
-  const { data: figmaData, error } = useSWRImmutable([
-    "https://api.figma.com/v1/files/" + designSystem.figma_file_key,
-    {
-      method: "GET",
-      headers: {
-        "X-Figma-Token": process.env.NEXT_PUBLIC_FIGMA_TOKEN,
-      },
-    },
-  ]);
-
-  useEffect(() => {
-    if (figmaData) {
-      let filterComponentVariant = _.flatten(
-        _.toPairs(figmaData.components).map((variant) => {
-          return _.filter(variant, {
-            componentSetId: designSystem.component[0].nodeId,
-          });
-        })
-      );
-
-      let getProperties = filterComponentVariant.map((component) => {
-        let properties = _.split(component.name, ",");
-        let removeEquals = properties.map((prop) => {
-          return _.split(_.trim(prop), "=");
-        });
-
-        let turnToObject = _.fromPairs(removeEquals);
-
-        let keys = _.keys(turnToObject);
-
-        return keys;
-      });
-
-      let getValues = filterComponentVariant.map((component) => {
-        let properties = _.split(component.name, ",");
-        let removeEquals = properties.map((prop) => {
-          return _.split(_.trim(prop), "=");
-        });
-
-        let turnToObject = _.fromPairs(removeEquals);
-
-        let values = _.values(turnToObject);
-
-        return values;
-      });
-
-      let props = _.uniq(_.flatten(getProperties));
-      let values = getValues;
-
-      // Create a new object where props is the index and values gets added to its respective index
-      let propsAndValues = props.map((prop, index) => {
-        return {
-          [prop]: _.uniq(
-            values.map((value) => {
-              return value[index];
-            })
-          ),
-        };
-      });
-
-      setVariantData(propsAndValues);
-    }
-  }, [figmaData, designSystem]);
-
-  if (error) {
-    return <p>No data</p>;
-  }
-  if (!figmaData) return "";
-
-  return (
-    <PropTable>
-      <PropTableHeader>
-        <PropTableHeaderCell>Property</PropTableHeaderCell>
-        <PropTableHeaderCell>Value</PropTableHeaderCell>
-        <PropTableHeaderCell>Type</PropTableHeaderCell>
-      </PropTableHeader>
-      <PropTableBody>
-        {variantData?.map((variant) => {
-          return (
-            // eslint-disable-next-line react/jsx-key
-            <PropTableRow>
-              <PropTableCell>{_.keys(variant)}</PropTableCell>
-              <PropTableCell>
-                {_.values(variant).map((value) => {
-                  let a = _.split(value, ",");
-                  return a.map((v, id) => <span key={id}>{v}</span>);
-                })}
-              </PropTableCell>
-              <PropTableCell>
-                {_.values(variant).map((value) => {
-                  let a = _.split(value, ",");
-                  return a.map((v, id) => (
-                    <>
-                      {v === "True" || v === "False" ? (
-                        <span className="type" key={id}>
-                          Boolean
-                        </span>
-                      ) : (
-                        <span className="type" key={id}>
-                          String
-                        </span>
-                      )}
-                    </>
-                  ));
-                })}
-              </PropTableCell>
-            </PropTableRow>
-          );
-        })}
-      </PropTableBody>
-    </PropTable>
-  );
-};
-
-const PropTable = styled("div", {
-  fontFamily: "SF Mono, Menlo, monospace",
-  border: "1px solid $gray5",
-  borderRadius: 6,
-});
-
-const PropTableHeader = styled("div", {
-  height: 40,
-  padding: "0px 16px",
-  background: "$gray2",
-  display: "flex",
-  alignItems: "center",
-  fontSize: 13,
-  color: "$gray11",
-  borderRadius: "6px 6px 0 0",
-});
-
-const PropTableHeaderCell = styled("div", {
-  flex: 1,
-});
-
-const PropTableBody = styled("div", {});
-
-const PropTableRow = styled("div", {
-  display: "flex",
-  padding: "16px 16px",
-  borderBottom: "1px solid $gray5",
-});
-
-const PropTableCell = styled("div", {
-  flex: 1,
-  display: "flex",
-  flexDirection: "column",
-  fontSize: 13,
-  color: "$gray12",
-  div: {
-    display: "flex",
-    flexDirection: "column",
-    width: 90,
-  },
-
-  ".type": {
-    display: "none",
-    color: "$pink11",
-  },
-
-  ".type:first-child": {
-    display: "block",
-  },
-});
 
 const TabsRoot = styled(Tabs.Root, {
   display: "flex",

@@ -28,6 +28,7 @@ import { Button } from "../../../components/FDButton";
 import { styled } from "@stitches/react";
 import ImportTable from "../../../components/Table";
 import Spinner from "../../../components/Spinner";
+import { useProfileStore } from "../../../context/ProfileContext";
 
 // This gets called on every request
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
@@ -157,13 +158,15 @@ const TabFigma = ({ data }) => {
   const [rowSelection, setRowSelection] = useState({});
   const [selectedComponents, setSelectedComponents] = useState([]);
 
+  const { data: figmaToken } = useProfileStore();
+
   const { data: figmaComponentsAPI, error: figmaComponentsAPIError } =
     useSWRImmutable([
       "https://api.figma.com/v1/files/" + data.figma_file_key + "/components",
       {
         method: "GET",
         headers: {
-          "X-Figma-Token": process.env.NEXT_PUBLIC_FIGMA_TOKEN,
+          "X-Figma-Token": figmaToken?.figma_token,
         },
       },
     ]);
@@ -173,7 +176,7 @@ const TabFigma = ({ data }) => {
     {
       method: "GET",
       headers: {
-        "X-Figma-Token": process.env.NEXT_PUBLIC_FIGMA_TOKEN,
+        "X-Figma-Token": figmaToken?.figma_token,
       },
     },
   ]);

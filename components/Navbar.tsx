@@ -18,7 +18,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { mutate } from "swr";
 import { Button } from "./FDButton";
 
-const ComponentDropdown = ({ children }) => {
+const ComponentDropdown = ({ children, showFigmaProps, setShowFigmaProps }) => {
   const router = useRouter();
   const supabaseClient = useSupabaseClient();
   const { system, component } = router.query;
@@ -45,8 +45,12 @@ const ComponentDropdown = ({ children }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
-      <DropdownMenuContent size="md" collisionPadding={{ right: 24 }}>
+      <DropdownMenuContent size="lg" collisionPadding={{ right: 24 }}>
         <DropdownMenuItem>Go to Figma</DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setShowFigmaProps((prev) => !prev)}>
+          {showFigmaProps ? "Hide" : "Show"} Figma Props
+        </DropdownMenuItem>
+
         <DropdownMenuSeparator></DropdownMenuSeparator>
         <DropdownMenuItem onClick={DELETE_COMPONENT} destructive>
           Delete
@@ -56,7 +60,13 @@ const ComponentDropdown = ({ children }) => {
   );
 };
 
-const Navbar = ({ data, readOnly, setReadOnly }: any) => {
+const Navbar = ({
+  data,
+  readOnly,
+  setReadOnly,
+  setShowFigmaProps,
+  showFigmaProps,
+}: any) => {
   return (
     <NavContainer>
       <Breadcrumb>
@@ -85,7 +95,10 @@ const Navbar = ({ data, readOnly, setReadOnly }: any) => {
             </>
           )}
         </Button>
-        <ComponentDropdown>
+        <ComponentDropdown
+          showFigmaProps={showFigmaProps}
+          setShowFigmaProps={setShowFigmaProps}
+        >
           <IconButton>
             <MoreHorizCircledOutline width={18} />
           </IconButton>
