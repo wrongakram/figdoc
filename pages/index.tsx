@@ -29,7 +29,13 @@ import { Flex } from "../components/primitives/structure";
 import { EmptyState } from "../components/primitives/EmptyState";
 
 // Icons
-import { Plus, Svg3DSelectFace } from "iconoir-react";
+import {
+  ArrowRight,
+  Plus,
+  RightRoundArrow,
+  Svg3DSelectFace,
+} from "iconoir-react";
+import Link from "next/link";
 
 // This gets called on every request
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
@@ -40,141 +46,124 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
     data: { session },
   } = await supabase.auth.getSession();
 
-  if (!session)
+  if (session)
     return {
       redirect: {
-        destination: "/login",
+        destination: "/home",
         permanent: false,
       },
     };
 
-  // Run queries with RLS on the server
-  const { data } = await supabase.from("design_system").select("*");
-
   return {
     props: {
       initialSession: session,
-      user: session?.user,
-      data: data,
     },
   };
 };
 
-const Home = ({ user, data }: { data: DesignSystemData }) => {
-  const [myDesignSystems, setMyDesignSystem] = useState([]);
-  const [sharedWithMeDesignSystems, setSharedWithMeDesignSystems] = useState(
-    []
-  );
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    let my = _.filter(data, function (o) {
-      return o.created_by === user.id;
-    });
-
-    let shared = _.filter(data, function (o) {
-      return o.created_by !== user.id;
-    });
-
-    setMyDesignSystem(my);
-    setSharedWithMeDesignSystems(shared);
-    setLoading(false);
-  }, [data, user]);
-
-  const context = useContext(ToastContext);
+const Home = () => {
   return (
-    <Page>
-      <PageHeader>
-        <div>
-          <Flex alignItemsCenter>
-            <H2>Home</H2> <BetaLabel>Beta</BetaLabel>
-          </Flex>
-          <Subtitle> 👋 Welcome {user.user_metadata.name}</Subtitle>
-        </div>
-        <Flex style={{ gap: 16 }}>
-          <Invites />
-          <CreateNewDesignSystemDialog>
+    <HomePage>
+      <HomeNav>
+        <HomeNavLeft>
+          <HomeNavLogo>
+            <HomeNavLogoText>.figdoc</HomeNavLogoText>
+            <BetaLabel>Beta</BetaLabel>
+          </HomeNavLogo>
+        </HomeNavLeft>
+        <HomeNavRight>
+          <Link href="/login">
             <Button>
-              <Plus /> Create
+              Get started <ArrowRight />
             </Button>
-          </CreateNewDesignSystemDialog>
-        </Flex>
-      </PageHeader>
-      <>
-        {loading ? (
-          <EmptyState>
-            <Spinner color="black" />
-          </EmptyState>
-        ) : (
-          <>
-            {myDesignSystems.length != 0 ? (
-              <>
-                <H4
-                  css={{
-                    marginBottom: "$6",
-                    paddingTop: "$8",
-                    marginTop: "$8",
-                    borderTop: "1px solid $gray3",
-                  }}
-                >
-                  My Design Systems
-                </H4>
-                <PageGrid>
-                  {myDesignSystems.map((system) => (
-                    <FDDesignSystemCards key={system.id} system={system} />
-                  ))}
-                </PageGrid>
-              </>
-            ) : myDesignSystems.length == 0 &&
-              sharedWithMeDesignSystems.length >= 1 ? null : (
-              <EmptyState>
-                <div className="svg-container">
-                  <Svg3DSelectFace />
-                </div>
-                <h3>Looks like you don't have any Design Systems</h3>
-                <p>
-                  You can create a new Design System by clicking the{" "}
-                  <CreateNewDesignSystemDialog>
-                    <span>+ Create</span>
-                  </CreateNewDesignSystemDialog>{" "}
-                  button.
-                </p>
-              </EmptyState>
-            )}
-          </>
-        )}
-
-        {sharedWithMeDesignSystems.length != 0 && (
-          <>
-            {loading ? (
-              <EmptyState>
-                <Spinner color="black" />
-              </EmptyState>
-            ) : (
-              <>
-                <H4
-                  css={{
-                    marginBottom: "$6",
-                    paddingTop: "$8",
-                    marginTop: "$8",
-                    borderTop: "1px solid $gray3",
-                  }}
-                >
-                  Shared with me
-                </H4>
-                <PageGrid>
-                  {sharedWithMeDesignSystems.map((system) => (
-                    <FDDesignSystemCards key={system.id} system={system} />
-                  ))}
-                </PageGrid>
-              </>
-            )}
-          </>
-        )}
-      </>
-    </Page>
+          </Link>
+        </HomeNavRight>
+      </HomeNav>
+      <HomeHero>
+        <HomeHeroText>
+          <HomeHeroTitle>
+            Document your Figma Components with ease
+          </HomeHeroTitle>
+          <HomeHeroSubtitle>
+            {/* A design system for the modern web. */}
+          </HomeHeroSubtitle>
+        </HomeHeroText>
+      </HomeHero>
+    </HomePage>
   );
 };
+
+const HomePage = styled("div", {
+  height: "100vh",
+  width: "100vw",
+  backgroundColor: "$gray1",
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  "&:before": {
+    content: "",
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "80vh",
+    backgroundColor: "$gray3",
+  },
+});
+
+const HomeNav = styled("div", {
+  zIndex: 1,
+  display: "flex",
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+  width: "100%",
+  maxWidth: 1200,
+  padding: "0 24px",
+  height: 80,
+});
+
+const HomeNavLeft = styled("div", {
+  display: "flex",
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "flex-start",
+});
+
+const HomeNavLogo = styled("div", {
+  display: "flex",
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "flex-start",
+});
+
+const HomeNavLogoText = styled("div", {
+  fontSize: 18,
+  fontWeight: 400,
+  color: "$gray12",
+});
+
+const HomeNavRight = styled("div", {
+  display: "flex",
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "flex-end",
+  gap: 8,
+});
+
+const HomeNavButton = styled("a", {
+  fontSize: 14,
+  fontWeight: 500,
+  color: "$gray11",
+  textDecoration: "none",
+  padding: "8px 16px",
+  borderRadius: 6,
+  marginLeft: 12,
+  "&:hover": {
+    backgroundColor: "$gray3",
+  },
+});
 
 const BetaLabel = styled("div", {
   fontSize: 10,
@@ -186,6 +175,43 @@ const BetaLabel = styled("div", {
   color: "$blue11",
   borderRadius: 6,
   marginLeft: 12,
+});
+
+const HomeHero = styled("div", {
+  zIndex: 1,
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  width: "100%",
+  maxWidth: 1200,
+  padding: "0 24px",
+  height: "100%",
+});
+
+const HomeHeroText = styled("div", {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  width: "100%",
+  padding: "0 24px",
+  height: "100%",
+});
+
+const HomeHeroTitle = styled("div", {
+  fontSize: 24,
+  fontWeight: 700,
+  color: "$gray12",
+  textAlign: "center",
+});
+
+const HomeHeroSubtitle = styled("div", {
+  fontSize: 24,
+  fontWeight: 400,
+  color: "$gray11",
+  textAlign: "center",
+  marginTop: 12,
 });
 
 export default Home;

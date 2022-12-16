@@ -29,6 +29,7 @@ import EditDesignSystemDialog from "./Modals/EditDesignSystem";
 import { capitalizeFirstLetter } from "../utils/functions/capitalizeFirstLetter";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 import _ from "lodash";
+import { Flex } from "./primitives/structure";
 
 const Button = styled("button", {
   height: "36px",
@@ -144,72 +145,6 @@ const NavMenuList = styled(NavigationMenu.List, {
 
 const NavMenuItem = styled(NavigationMenu.Item, {});
 
-const NavMenuExternalLink = styled("a", {
-  margin: "none",
-  cursor: "pointer",
-  height: 36,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  padding: "0px 12px 0 8px",
-  fontSize: 14,
-  borderRadius: "6px",
-  color: "$gray11",
-  "&:hover": {
-    background: "$gray3",
-  },
-  variants: {
-    secondary: {
-      true: {
-        color: "$gray11",
-      },
-    },
-    active: {
-      true: {
-        fontWeight: "500",
-        background: "$gray4",
-        color: "$gray12",
-      },
-    },
-
-    color: {
-      violet: {
-        "&:hover": {
-          backgroundColor: "$violet2",
-        },
-      },
-      green: {
-        "&:hover": {
-          backgroundColor: "$green2",
-        },
-      },
-    },
-  },
-
-  compoundVariants: [
-    {
-      color: "violet",
-      active: true,
-      css: {
-        color: "$violet11",
-        backgroundColor: "$violet3",
-        "&:hover": {
-          color: "$violet11",
-          backgroundColor: "$violet4",
-        },
-      },
-    },
-    {
-      color: "green",
-      active: true,
-      css: {
-        color: "$green11",
-        backgroundColor: "$green3",
-      },
-    },
-  ],
-});
-
 const NavMenuLink = styled(Link, {
   listStyle: "none",
   margin: "none",
@@ -278,7 +213,7 @@ const Input = styled("input", {
   fontSize: 14,
   lineHeight: 1,
   color: "$gray12",
-  height: 32,
+  height: 36,
   backgroundColor: "$gray3",
   boxSizing: "border-box",
   border: "solid 1px $gray5",
@@ -287,7 +222,7 @@ const Input = styled("input", {
     color: "$gray10",
   },
 
-  "&:focus": { boxShadow: `0 0 0 2px ${violet.violet8}` },
+  "&:focus": { boxShadow: `0 0 0 2px ${violet.violet8}`, outline: "none" },
 });
 
 const SidebarFooter = styled("div", {});
@@ -297,8 +232,6 @@ const SidebarComponents = ({ designSystemName }) => {
   const router = useRouter();
   const { system } = router.query;
   const path = router.asPath;
-
-  const [numberOfComponents, setNumberOfComponents] = useState();
 
   useEffect(() => {
     designSystemName?.map((ds) => {
@@ -377,21 +310,8 @@ const SidebarComponents = ({ designSystemName }) => {
         </NavigationMenu.Root>
       </SidebarSection>
       <Divider />
-      <SidebarSection>
-        <SearchInput>
-          <Input id="search-components" placeholder="Search..." />
-          <Search />
-        </SearchInput>
-      </SidebarSection>
-      <SidebarSection>
-        <Subheader>
-          Components ({numberOfComponents})
-          <Button small>
-            <Plus />
-          </Button>
-        </Subheader>
-      </SidebarSection>
-      <ComponentsList ds={ds} setNumberOfComponents={setNumberOfComponents} />
+
+      <ComponentsList />
       <SidebarFooter></SidebarFooter>
     </SidebarMain>
   );
@@ -399,9 +319,11 @@ const SidebarComponents = ({ designSystemName }) => {
 
 export default SidebarComponents;
 
-const ComponentsList = ({ ds, setNumberOfComponents }) => {
+const ComponentsList = ({}) => {
   const router = useRouter();
   const { system, component } = router.query;
+
+  const [components, setComponents] = useState([]);
 
   const { data, error } = useSWR(
     `http://localhost:3000/api/design-systems/${system}`
@@ -409,7 +331,7 @@ const ComponentsList = ({ ds, setNumberOfComponents }) => {
 
   useEffect(() => {
     if (data) {
-      setNumberOfComponents(data.length);
+      setComponents(data);
     }
   }, [data]);
 
@@ -418,38 +340,91 @@ const ComponentsList = ({ ds, setNumberOfComponents }) => {
   }
   if (!data) return "";
 
+  // function that filters components by name when user types in search bar
+  const filterComponents = (e) => {
+    // sort data by title and filter by search input value (case insensitive) and return new array of filtered components
+    const filteredComponents = data
+      .sort((a, b) => a.title.localeCompare(b.title))
+      .filter((componentItem: any) => {
+        return (
+          componentItem.title
+            .toLowerCase()
+            .indexOf(e.target.value.toLowerCase()) > -1
+        );
+      });
+
+    setComponents(filteredComponents);
+  };
+
   return (
-    <ScrollAreaRoot>
-      <ScrollAreaViewport>
-        <SidebarSection>
-          <NavigationMenu.Root>
-            <NavMenuList>
-              {data
-                .sort((a, b) => a.title.localeCompare(b.title))
-                .map((componentItem: any) => {
-                  return (
-                    <NavMenuItem key={componentItem.id}>
-                      <NavMenuLink
-                        href={`/design-system/${system}/component/${componentItem?.id}`}
-                        active={component == componentItem.id}
-                      >
-                        {capitalizeFirstLetter(componentItem.title)}
-                      </NavMenuLink>
-                    </NavMenuItem>
-                  );
-                })}
-            </NavMenuList>
-          </NavigationMenu.Root>
-        </SidebarSection>
-      </ScrollAreaViewport>
-      <ScrollAreaScrollbar orientation="vertical">
-        <ScrollAreaThumb />
-      </ScrollAreaScrollbar>
-      <ScrollAreaScrollbar orientation="horizontal">
-        <ScrollAreaThumb />
-      </ScrollAreaScrollbar>
-      <ScrollAreaCorner />
-    </ScrollAreaRoot>
+    <>
+      <SidebarSection>
+        <Subheader>
+          Components ({components.length})
+          <Button small>
+            <Plus />
+          </Button>
+        </Subheader>
+      </SidebarSection>
+
+      <SidebarSection>
+        <SearchInput>
+          <Input
+            id="search-components"
+            placeholder="Search..."
+            onChange={filterComponents}
+          />
+
+          <Search />
+        </SearchInput>
+      </SidebarSection>
+      <ScrollAreaRoot>
+        <ScrollAreaViewport>
+          <SidebarSection>
+            <NavigationMenu.Root>
+              <NavMenuList>
+                {components.length > 0 ? (
+                  components
+                    .sort((a, b) => a.title.localeCompare(b.title))
+                    .map((componentItem: any) => {
+                      return (
+                        <NavMenuItem key={componentItem.id}>
+                          <NavMenuLink
+                            href={`/design-system/${system}/component/${componentItem?.id}`}
+                            active={component == componentItem.id}
+                          >
+                            {capitalizeFirstLetter(componentItem.title)}
+                          </NavMenuLink>
+                        </NavMenuItem>
+                      );
+                    })
+                ) : data.length === 0 ? (
+                  <Flex>
+                    <SearchMessage>
+                      No components found. Create a new component to get
+                      started.
+                    </SearchMessage>
+                  </Flex>
+                ) : (
+                  <Flex>
+                    <SearchMessage>
+                      No components found. Try searching for a different term.
+                    </SearchMessage>
+                  </Flex>
+                )}
+              </NavMenuList>
+            </NavigationMenu.Root>
+          </SidebarSection>
+        </ScrollAreaViewport>
+        <ScrollAreaScrollbar orientation="vertical">
+          <ScrollAreaThumb />
+        </ScrollAreaScrollbar>
+        <ScrollAreaScrollbar orientation="horizontal">
+          <ScrollAreaThumb />
+        </ScrollAreaScrollbar>
+        <ScrollAreaCorner />
+      </ScrollAreaRoot>
+    </>
   );
 };
 
@@ -511,6 +486,15 @@ const FDDropDown = ({ id, ds, system, children }: any) => {
     </DropdownMenu.Root>
   );
 };
+
+const SearchMessage = styled("span", {
+  color: "$gray9",
+  fontSize: "$fontSizes$1",
+  margin: 0,
+  padding: "$4 $2",
+  textAlign: "center",
+  width: "100%",
+});
 
 const slideUpAndFade = keyframes({
   "0%": { opacity: 0, transform: "translateY(2px)" },

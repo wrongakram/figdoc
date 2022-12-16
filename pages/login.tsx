@@ -11,7 +11,7 @@ const Login = () => {
 
   useEffect(() => {
     if (user) {
-      router.push("/");
+      router.push("/home");
     }
   }, [user]);
 
@@ -25,7 +25,8 @@ const Login = () => {
           supabaseClient={supabaseClient}
           providers={["google"]}
           magicLink
-          redirectTo="/"
+          redirectTo="/home"
+          onlyThirdPartyProviders
         />
       </LoginContainer>
     </LoginPage>

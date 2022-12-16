@@ -301,7 +301,7 @@ const DashboardSidebar = ({ setDesignSystemName }) => {
             <Tooltip.Root>
               <NavMenuItem>
                 <Tooltip.Trigger asChild>
-                  <NavMenuNextLink href="/" active={path == "/"}>
+                  <NavMenuNextLink href="/home" active={path == "/home"}>
                     <HomeSimpleDoor />
                   </NavMenuNextLink>
                 </Tooltip.Trigger>

@@ -4,14 +4,13 @@ import {
   Lock,
   MoreHorizCircledOutline,
   MoreHoriz,
+  ProfileCircled,
 } from "iconoir-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { useSWRConfig } from "swr";
 import { styled } from "../stitches.config";
-
-import { DesignSystemData } from "../types";
 
 import {
   DropdownMenu,
@@ -47,8 +46,13 @@ const Card = styled(Link, {
     },
 
     ".description": {
-      fontSize: "14px",
+      fontSize: "$2",
       color: "$gray11",
+      display: "-webkit-box",
+      "-webkit-box-orient": "vertical",
+      "-webkit-line-clamp": 2,
+      overflow: "hidden",
+      lineHeight: "1.3rem",
     },
   },
 
@@ -69,34 +73,6 @@ const Card = styled(Link, {
       svg: {},
     },
   },
-});
-
-const Cover = styled("div", {
-  background: "$gray4",
-  height: "48px",
-  display: "block",
-
-  variants: {
-    color: {
-      violet: {},
-      green: {},
-    },
-  },
-
-  compoundVariants: [
-    {
-      color: "violet",
-      css: {
-        backgroundColor: "$violet4",
-      },
-    },
-    {
-      color: "green",
-      css: {
-        backgroundColor: "$green4",
-      },
-    },
-  ],
 });
 
 const SystemAvatar = styled("div", {
@@ -154,15 +130,20 @@ export const FDDesignSystemCards = ({ system }: { system: DesignSystem }) => {
       <div style={{ position: "absolute", left: "16px", top: "28px" }}>
         <FDSystemIcon theme={system.theme} />
       </div>
-
       <div className="content">
         <div className="title">{system.title}</div>
         <div className="description">{system.description}</div>
       </div>
       <div className="tags-container">
-        <div className="tag">
-          <Lock width={14} /> Private
-        </div>
+        {system.members.length > 1 ? (
+          <div className="tag">
+            <Label color={system.theme}>{system.members.length}</Label> Members
+          </div>
+        ) : (
+          <div className="tag">
+            <Lock width={14} /> Private
+          </div>
+        )}
       </div>
       <DesignSystemCardDropdown id={system.id} owner={system.created_by}>
         <IconButton>
@@ -271,3 +252,88 @@ const DesignSystemCardDropdown = ({ children, id, owner }) => {
     </DropdownMenu>
   );
 };
+
+const themeStyles = {
+  variants: {
+    color: {
+      violet: {},
+      green: {},
+      blue: {},
+      red: {},
+      yellow: {},
+      orange: {},
+      pink: {},
+    },
+  },
+
+  compoundVariants: [
+    {
+      color: "violet",
+      css: {
+        color: "$violet11",
+        backgroundColor: "$violet4",
+      },
+    },
+    {
+      color: "green",
+      css: {
+        color: "$green11",
+        backgroundColor: "$green4",
+      },
+    },
+    {
+      color: "blue",
+      css: {
+        color: "$blue11",
+        backgroundColor: "$blue4",
+      },
+    },
+    {
+      color: "red",
+      css: { color: "$red11", backgroundColor: "$red4" },
+    },
+    {
+      color: "yellow",
+      css: {
+        color: "$yellow11",
+        backgroundColor: "$yellow4",
+      },
+    },
+    {
+      color: "orange",
+      css: {
+        color: "$orange11",
+        backgroundColor: "$orange4",
+      },
+    },
+    {
+      color: "pink",
+      css: {
+        color: "$pink11",
+        backgroundColor: "$pink4",
+      },
+    },
+  ],
+};
+
+const Label = styled("span", {
+  ...themeStyles,
+  background: "$violet4",
+  color: "$violet11",
+  height: 18,
+  width: 18,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  lineHeight: 1,
+  borderRadius: 200,
+  fontSize: 11,
+  fontWeight: 500,
+});
+
+const Cover = styled("div", {
+  ...themeStyles,
+  background: "$gray4",
+  height: "48px",
+  display: "block",
+});
