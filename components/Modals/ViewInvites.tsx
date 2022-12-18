@@ -103,8 +103,8 @@ const ViewInvitesDialog = ({ children, data }: any) => {
         <DialogContent className="DialogContent">
           <DialogTitle className="DialogTitle">Join Design Systems</DialogTitle>
           <DialogDescription>
-            You've been Invited to join the following Design System. Accept or
-            decline your invite below.
+            You&apos;ve been Invited to join the following Design System. Accept
+            or decline your invite below.
           </DialogDescription>
 
           <div className="inner">

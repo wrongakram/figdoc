@@ -53,9 +53,9 @@ const AvatarFallback = styled(Avatar.Fallback, {
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
-  backgroundColor: "var(--violet2)",
-  color: "var(--violet11)",
-  fontSize: "14px",
+  backgroundColor: "$gray4",
+  color: "$gray11",
+  fontSize: "12px",
   lineHeight: "1",
   fontWeight: "600",
 });

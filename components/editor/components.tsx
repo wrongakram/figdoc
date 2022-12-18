@@ -45,7 +45,7 @@ export const EditorValue = React.forwardRef(
       .join("\n");
     return (
       <div ref={ref} {...props}>
-        <div>Slate's value as text</div>
+        <div>Slate&apos;s value as text</div>
         <div>{textLines}</div>
       </div>
     );

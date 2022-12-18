@@ -86,7 +86,7 @@ const Profile = ({ children }: any) => {
         body: JSON.stringify({ id: user?.id }),
       });
 
-      // if (error) throw error;
+      if (error) throw error;
     } catch (error: any) {
       console.log(error);
     }

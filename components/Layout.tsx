@@ -50,7 +50,7 @@ export default function Layout({ children }) {
     setTimeout(() => {
       context.setCreateDesignSystemToast(false);
     }, 3000);
-  }, [context.createDesignSystemToast]);
+  }, [context]);
 
   if (!user)
     return (

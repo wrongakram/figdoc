@@ -7,6 +7,7 @@ import { styled, keyframes } from "../stitches.config";
 export const DropdownMenu = DropdownMenuPrimitive.Root;
 export const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
 
+// eslint-disable-next-line react/display-name
 export const DropdownMenuContent = React.forwardRef(
   ({ children, ...props }, forwardedRef) => {
     return (

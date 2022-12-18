@@ -10,6 +10,7 @@ import {
   Caption,
   Subtitle,
 } from "../components/primitives/Text";
+import { useProfileStore } from "../context/ProfileContext";
 
 const guide = () => {
   return (

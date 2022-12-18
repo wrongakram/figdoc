@@ -214,7 +214,7 @@ export const FDComponentCard = ({
 const ComponentCoverImage = ({ fileKey, nodeId }: any) => {
   const router = useRouter();
 
-  const { data: figmaToken } = useProfileStore();
+  const { data: figmaToken }: any = useProfileStore();
 
   // States
   const [allComponentThumbnails, setAllComponentThumbnails] = useState("");
@@ -237,7 +237,7 @@ const ComponentCoverImage = ({ fileKey, nodeId }: any) => {
 
       setAllComponentThumbnails(matchingComponents[0]?.thumbnail_url);
     }
-  }, [data]);
+  }, [data, nodeId]);
 
   if (error) {
     return (
@@ -314,7 +314,7 @@ const IconButton = styled("button", {
   "&:focus": { boxShadow: `0 0 0 2px black` },
 });
 
-const DesignSystemCardDropdown = ({ children, id }) => {
+const DesignSystemCardDropdown = ({ children, id }: any) => {
   const user = useUser();
   const router = useRouter();
   const { system } = router.query;

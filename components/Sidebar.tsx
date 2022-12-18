@@ -410,6 +410,10 @@ const DashboardSidebar = ({ setDesignSystemName }) => {
 export default DashboardSidebar;
 
 const DesignSystemList = ({ setDesignSystemName }) => {
+  const router = useRouter();
+  const path = router.asPath;
+  const { system } = router.query;
+
   const { data, error } = useSWR(
     `http://localhost:3000/api/design-systems/getAllDesignSystems`
   );
@@ -430,10 +434,6 @@ const DesignSystemList = ({ setDesignSystemName }) => {
         <Loader height="40px" count={2} borderRadius={8} />
       </>
     );
-
-  const router = useRouter();
-  const path = router.asPath;
-  const { system } = router.query;
 
   return (
     <>

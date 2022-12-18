@@ -5,15 +5,15 @@ const fetcher = (url) => fetch(url).then((res) => res.json());
 
 const ProfileContext = createContext({});
 
-export const ProfileProvider = ({ children }) => {
+export const ProfileProvider = ({ children }: any) => {
   const { data, error } = useSWR(
     "http://localhost:3000/api/getFigmaToken",
     fetcher
   );
 
-  if (error) return <div>failed to load</div>;
-
   const value = useMemo(() => ({ data }), [data]);
+
+  if (error) return <div>failed to load</div>;
 
   return (
     <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>

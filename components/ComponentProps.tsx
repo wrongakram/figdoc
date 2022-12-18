@@ -89,7 +89,7 @@ const ComponentFigmaProps = ({ designSystem }) => {
   }, [figmaData, designSystem]);
 
   if (error) {
-    return <p>Couldn't get component props from figma</p>;
+    return <p>Couldn&apos;t get component props from figma</p>;
   }
   if (!figmaData)
     return (

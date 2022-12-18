@@ -13,7 +13,7 @@ const Login = () => {
     if (user) {
       router.push("/home");
     }
-  }, [user]);
+  }, [user, router]);
 
   return (
     <LoginPage>

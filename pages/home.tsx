@@ -133,7 +133,7 @@ const Home = ({ user, data }: { data: DesignSystemData }) => {
                 <div className="svg-container">
                   <Svg3DSelectFace />
                 </div>
-                <h3>Looks like you don't have any Design Systems</h3>
+                <h3>Looks like you don&apos;t have any Design Systems</h3>
                 <p>
                   You can create a new Design System by clicking the{" "}
                   <CreateNewDesignSystemDialog>

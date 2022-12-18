@@ -265,7 +265,7 @@ const ComponentEditor = ({ data, readOnly, componentDocumentation }: any) => {
                 ) : savingStatus === "saved" ? (
                   <SaveMessage>Saved!</SaveMessage>
                 ) : savingStatus === "error" ? (
-                  <SaveMessage>Error... couldn't save</SaveMessage>
+                  <SaveMessage>Error... couldn&apos;t save</SaveMessage>
                 ) : null}
               </Flex>
             </ToolbarRoot>

@@ -34,6 +34,19 @@ type Component = {
 
 const columnHelper = createColumnHelper<Component>();
 
+const IconButton = styled("button", {
+  fontFamily: "inherit",
+  borderRadius: "100%",
+  height: 32,
+  width: 32,
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  color: "$gray12",
+  "&:hover": { backgroundColor: "rgba(100,100,100,.06)" },
+  "&:focus": { boxShadow: `0 0 0 2px black` },
+});
+
 export default function MembersTable({
   members,
   rowSelection,
@@ -121,21 +134,8 @@ export default function MembersTable({
         ),
       },
     ],
-    []
+    [tableType]
   );
-
-  const IconButton = styled("button", {
-    fontFamily: "inherit",
-    borderRadius: "100%",
-    height: 32,
-    width: 32,
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    color: "$gray12",
-    "&:hover": { backgroundColor: "rgba(100,100,100,.06)" },
-    "&:focus": { boxShadow: `0 0 0 2px black` },
-  });
 
   const table = useReactTable({
     data,

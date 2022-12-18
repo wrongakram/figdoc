@@ -57,18 +57,11 @@ export const getServerSideProps: GetServerSideProps = async (
     .select("*, component (*)")
     .single();
 
-  const { data: figmaToken } = await supabase
-    .from("profiles")
-    .select("figma_token")
-    .eq("id", session.user.id)
-    .single();
-
   return {
     props: {
       initialSession: session,
       user: session.user,
       data: data,
-      figmaToken: figmaToken,
     },
   };
 };
@@ -98,7 +91,7 @@ export type DesignSystemData = {
   component: Component[];
 };
 
-const DesignSystemPage = ({ data, figmaToken }: DesignSystemData) => {
+const DesignSystemPage = ({ data }: DesignSystemData) => {
   const router = useRouter();
   const { system } = router.query;
   return (
@@ -141,7 +134,6 @@ const DesignSystemPage = ({ data, figmaToken }: DesignSystemData) => {
                 key={component.id}
                 component={component}
                 fileKey={data.figma_file_key}
-                figmaToken={figmaToken}
               />
             ))}
         </PageGrid>

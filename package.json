@@ -35,6 +35,7 @@
     "draft-js": "^0.11.7",
     "eslint": "8.27.0",
     "eslint-config-next": "13.0.3",
+    "framer-motion": "^7.10.2",
     "iconoir-react": "^5.4.1",
     "is-hotkey": "^0.2.0",
     "lodash": "^4.17.21",

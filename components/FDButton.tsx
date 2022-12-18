@@ -39,7 +39,7 @@ export const Button = styled("button", {
       },
       large: {
         fontSize: "$3",
-        height: 56,
+        height: 52,
       },
     },
     apperance: {

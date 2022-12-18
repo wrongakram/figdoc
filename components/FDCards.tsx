@@ -170,7 +170,7 @@ const IconButton = styled("button", {
   "&:focus": { boxShadow: `0 0 0 2px black` },
 });
 
-const DesignSystemCardDropdown = ({ children, id, owner }) => {
+const DesignSystemCardDropdown = ({ children, id, owner }: any) => {
   const user = useUser();
   const [admin, setAdmin] = useState();
 
@@ -219,7 +219,7 @@ const DesignSystemCardDropdown = ({ children, id, owner }) => {
   };
 
   useEffect(() => {
-    if (owner == user.id) {
+    if (owner == user?.id) {
       setAdmin(true);
     }
   }, [owner, user]);

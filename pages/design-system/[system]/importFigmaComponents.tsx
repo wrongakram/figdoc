@@ -29,6 +29,8 @@ import { styled } from "@stitches/react";
 import ImportTable from "../../../components/Table";
 import Spinner from "../../../components/Spinner";
 import { useProfileStore } from "../../../context/ProfileContext";
+import EditDesignSystemDialog from "../../../components/Modals/EditDesignSystem";
+import { Figma, WarningTriangleOutline } from "iconoir-react";
 
 // This gets called on every request
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
@@ -79,7 +81,6 @@ const DesignSystemPage = ({ data, designSystem }: any) => {
         </div>
         <Button>Import</Button>
       </PageHeader>
-
       <TabFigma data={data} />
     </Page>
   );
@@ -184,7 +185,7 @@ const TabFigma = ({ data }) => {
   useEffect(() => {
     if (figmaComponentsAPI && figmaFileAPI) {
       let componentsFromFigma: any[] = _.uniqBy(
-        figmaComponentsAPI.meta.components.map((i) => i.containing_frame),
+        figmaComponentsAPI.meta?.components.map((i) => i.containing_frame),
         "nodeId"
       );
 
@@ -223,7 +224,7 @@ const TabFigma = ({ data }) => {
     });
 
     setSelectedComponents(filterSelectedComponents);
-  }, [rowSelection]);
+  }, [rowSelection, parentComponents]);
 
   function numberOfVariants(id) {
     let variants = _.filter(
@@ -236,10 +237,11 @@ const TabFigma = ({ data }) => {
     return variants.length;
   }
 
-  if (figmaComponentsAPIError && figmaFileAPIError) {
-    return <p>No figma file key specified... add one now :)</p>;
+  if (figmaComponentsAPIError || figmaFileAPIError) {
+    throw figmaComponentsAPIError || figmaFileAPIError;
   }
-  if (!figmaComponentsAPI && !figmaFileAPI) return <p>"Loading..."</p>;
+
+  // if (!figmaComponentsAPI && !figmaFileAPI) return <p>Loading...</p>;
 
   const bulkCreateComponent = async () => {
     try {
@@ -272,7 +274,20 @@ const TabFigma = ({ data }) => {
 
   return (
     <>
-      {loading ? (
+      {figmaComponentsAPI?.status === 404 || figmaFileAPI?.status === 404 ? (
+        <EmptyState>
+          <div className="svg-container">
+            <WarningTriangleOutline />
+          </div>
+          <h3>Couldn&apos;t retrieve your figma file </h3>
+          <p>
+            Check to make sure you entered the correct
+            <EditDesignSystemDialog>
+              <span>file key</span>
+            </EditDesignSystemDialog>
+          </p>
+        </EmptyState>
+      ) : loading ? (
         <>
           <EmptyState
             css={{
@@ -306,13 +321,16 @@ const TabFigma = ({ data }) => {
             </ImportContainer>
           ) : (
             <EmptyState>
-              <div className="svg-container"></div>
-              <h3>Couldn't find any components in your figma file</h3>
+              <div className="svg-container">
+                <Figma />
+              </div>
+              <h3>0 components in your figma file</h3>
               <p>Try creating a new component within your figma file</p>
             </EmptyState>
           )}
         </>
       )}
+      {}
     </>
   );
 };
