@@ -4,6 +4,7 @@ import React, {
   useMemo,
   useCallback,
   Component,
+  ReactElement,
 } from "react";
 import { styled } from "../../../../stitches.config";
 
@@ -30,6 +31,7 @@ import { EditorPlayground } from "../../../../components/editor/EditorPlayground
 
 import dynamic from "next/dynamic";
 import ComponentFigmaProps from "../../../../components/ComponentProps";
+import Layout from "../../../../components/Layout";
 const ComponentEditor = dynamic(
   () => import("../../../../components/editor/Editor"),
   {
@@ -200,4 +202,8 @@ const FigmaComponentPreview = ({ url }: any) => {
       <iframe width="100%" height="100%" src={url}></iframe>
     </FigmaPreviewFrame>
   );
+};
+
+ComponentPage.getLayout = function getLayout(page: ReactElement) {
+  return <Layout>{page}</Layout>;
 };

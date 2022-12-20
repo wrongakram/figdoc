@@ -1,5 +1,6 @@
-import React from "react";
+import React, { ReactElement } from "react";
 import { EditorPlayground } from "../components/editor/EditorPlayground";
+import Layout from "../components/Layout";
 
 import {
   H1,
@@ -12,7 +13,7 @@ import {
 } from "../components/primitives/Text";
 import { useProfileStore } from "../context/ProfileContext";
 
-const guide = () => {
+const Guide = () => {
   return (
     <div style={{ padding: 40 }}>
       <H1>Heading 1</H1>
@@ -28,4 +29,8 @@ const guide = () => {
   );
 };
 
-export default guide;
+export default Guide;
+
+Guide.getLayout = function getLayout(page: ReactElement) {
+  return <Layout>{page}</Layout>;
+};

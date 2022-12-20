@@ -1,6 +1,6 @@
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { GetServerSideProps, GetServerSidePropsContext } from "next";
-import React, { useState } from "react";
+import React, { ReactElement, useState } from "react";
 import {
   Page,
   PageHeader,
@@ -14,6 +14,7 @@ import MembersTable from "../../../components/MembersTable";
 import InviteMembersDialog from "../../../components/Modals/InviteMembers";
 import * as Tabs from "@radix-ui/react-tabs";
 import { styled } from "../../../stitches.config";
+import Layout from "../../../components/Layout";
 
 export const getServerSideProps: GetServerSideProps = async (
   ctx: GetServerSidePropsContext
@@ -163,3 +164,7 @@ const TabsContent = styled(Tabs.Content, {
   flexGrow: 1,
   paddingTop: 24,
 });
+
+Members.getLayout = function getLayout(page: ReactElement) {
+  return <Layout>{page}</Layout>;
+};

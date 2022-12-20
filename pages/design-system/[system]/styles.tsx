@@ -1,5 +1,5 @@
 // React
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, ReactElement } from "react";
 
 // Next
 import { useRouter } from "next/router";
@@ -34,6 +34,7 @@ import { Plus, Puzzle } from "iconoir-react";
 import { styled } from "@stitches/react";
 import { FDComponentCard } from "../../../components/ComponentCards";
 import { useProfileStore } from "../../../context/ProfileContext";
+import Layout from "../../../components/Layout";
 
 export const getServerSideProps: GetServerSideProps = async (
   ctx: GetServerSidePropsContext
@@ -301,3 +302,7 @@ const TabsContent = styled(Tabs.Content, {
   flexGrow: 1,
   paddingTop: 24,
 });
+
+Styles.getLayout = function getLayout(page: ReactElement) {
+  return <Layout>{page}</Layout>;
+};

@@ -1,5 +1,5 @@
 // React
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, ReactElement } from "react";
 
 // Next
 import { useRouter } from "next/router";
@@ -31,6 +31,7 @@ import Spinner from "../../../components/Spinner";
 import { useProfileStore } from "../../../context/ProfileContext";
 import EditDesignSystemDialog from "../../../components/Modals/EditDesignSystem";
 import { Figma, WarningTriangleOutline } from "iconoir-react";
+import Layout from "../../../components/Layout";
 
 // This gets called on every request
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
@@ -66,7 +67,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   };
 };
 
-const DesignSystemPage = ({ data, designSystem }: any) => {
+const ImportFigmaComponents = ({ data, designSystem }: any) => {
   const router = useRouter();
   const { system } = router.query;
   return (
@@ -86,7 +87,7 @@ const DesignSystemPage = ({ data, designSystem }: any) => {
   );
 };
 
-export default DesignSystemPage;
+export default ImportFigmaComponents;
 
 const EmptyState = styled("div", {
   display: "flex",
@@ -353,3 +354,7 @@ const Flex = styled("div", {
   flexDirection: "column",
   gap: 8,
 });
+
+ImportFigmaComponents.getLayout = function getLayout(page: ReactElement) {
+  return <Layout>{page}</Layout>;
+};

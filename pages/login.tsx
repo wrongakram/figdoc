@@ -13,7 +13,7 @@ const Login = () => {
     if (user) {
       router.push("/home");
     }
-  }, [user, router]);
+  }, [user]);
 
   return (
     <LoginPage>
@@ -25,7 +25,7 @@ const Login = () => {
           supabaseClient={supabaseClient}
           providers={["google"]}
           magicLink
-          redirectTo="/home"
+          redirectTo={`${process.env.NEXT_PUBLIC_HOST}/home`}
           onlyThirdPartyProviders
         />
       </LoginContainer>

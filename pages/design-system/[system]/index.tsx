@@ -1,5 +1,5 @@
 // React
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, ReactElement } from "react";
 
 // Next
 import { useRouter } from "next/router";
@@ -32,6 +32,7 @@ import Link from "next/link";
 import { Plus, Puzzle } from "iconoir-react";
 import { styled } from "@stitches/react";
 import { FDComponentCard } from "../../../components/ComponentCards";
+import Layout from "../../../components/Layout";
 
 export const getServerSideProps: GetServerSideProps = async (
   ctx: GetServerSidePropsContext
@@ -200,3 +201,7 @@ const EmptyState = styled("div", {
     },
   },
 });
+
+DesignSystemPage.getLayout = function getLayout(page: ReactElement) {
+  return <Layout>{page}</Layout>;
+};

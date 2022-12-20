@@ -6,7 +6,7 @@ import { GetServerSidePropsContext } from "next";
 
 // Context
 import ToastContext from "../context/ToastContext";
-import { useContext, useEffect, useState } from "react";
+import { ReactElement, useContext, useEffect, useState } from "react";
 
 // Supabase
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
@@ -30,6 +30,7 @@ import { EmptyState } from "../components/primitives/EmptyState";
 
 // Icons
 import { Plus, Svg3DSelectFace } from "iconoir-react";
+import Layout from "../components/Layout";
 
 // This gets called on every request
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
@@ -132,7 +133,7 @@ const Home = ({ user, data }: { user: User; data: DesignSystemData }) => {
                 <div className="svg-container">
                   <Svg3DSelectFace />
                 </div>
-                <h3>Looks like you don&apos;t have any Design Systems</h3>
+                <h3>No Design Systems</h3>
                 <p>
                   You can create a new Design System by clicking the{" "}
                   <CreateNewDesignSystemDialog>
@@ -183,10 +184,14 @@ const BetaLabel = styled("div", {
   letterSpacing: ".5px",
   fontWeight: 600,
   padding: "4px 6px",
-  backgroundColor: "$blue3",
-  color: "$blue11",
+  backgroundColor: "$violet3",
+  color: "$violet11",
   borderRadius: 6,
   marginLeft: 12,
 });
 
 export default Home;
+
+Home.getLayout = function getLayout(page: ReactElement) {
+  return <Layout>{page}</Layout>;
+};
