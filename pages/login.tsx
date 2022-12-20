@@ -25,7 +25,7 @@ const Login = () => {
           supabaseClient={supabaseClient}
           providers={["google"]}
           magicLink
-          redirectTo={`${process.env.NEXT_PUBLIC_HOST}/home`}
+          redirectTo={`${process.env.NEXT_PUBLIC_HOST_URL}/home`}
           onlyThirdPartyProviders
         />
       </LoginContainer>
