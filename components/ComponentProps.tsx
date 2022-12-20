@@ -19,10 +19,10 @@ import { EmptyState } from "./primitives/EmptyState";
 import Spinner from "./Spinner";
 import { useProfileStore } from "../context/ProfileContext";
 
-const ComponentFigmaProps = ({ designSystem }) => {
-  const [variantData, setVariantData] = useState([]);
+const ComponentFigmaProps = ({ designSystem }: any) => {
+  const [variantData, setVariantData] = useState<any[]>([]);
 
-  const { data: figmaToken } = useProfileStore();
+  const { data: figmaToken }: any = useProfileStore();
 
   const { data: figmaData, error } = useSWRImmutable([
     "https://api.figma.com/v1/files/" + designSystem.figma_file_key,
@@ -44,7 +44,7 @@ const ComponentFigmaProps = ({ designSystem }) => {
         })
       );
 
-      let getProperties = filterComponentVariant.map((component) => {
+      let getProperties = filterComponentVariant.map((component: any) => {
         let properties = _.split(component.name, ",");
         let removeEquals = properties.map((prop) => {
           return _.split(_.trim(prop), "=");
@@ -57,7 +57,7 @@ const ComponentFigmaProps = ({ designSystem }) => {
         return keys;
       });
 
-      let getValues = filterComponentVariant.map((component) => {
+      let getValues = filterComponentVariant.map((component: any) => {
         let properties = _.split(component.name, ",");
         let removeEquals = properties.map((prop) => {
           return _.split(_.trim(prop), "=");

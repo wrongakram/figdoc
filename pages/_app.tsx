@@ -13,9 +13,6 @@ import { useState, createContext } from "react";
 // SWR
 import { SWRConfig } from "swr";
 
-// Loader
-import NextNProgress from "nextjs-progressbar";
-
 // Context
 import ToastContext from "../context/ToastContext";
 import { ProfileProvider } from "../context/ProfileContext";

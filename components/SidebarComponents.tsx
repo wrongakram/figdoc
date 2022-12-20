@@ -24,6 +24,7 @@ import {
   Packages,
   BookmarkBook,
   DataTransferBoth,
+  ColorFilter,
 } from "iconoir-react";
 import EditDesignSystemDialog from "./Modals/EditDesignSystem";
 import { capitalizeFirstLetter } from "../utils/functions/capitalizeFirstLetter";
@@ -274,18 +275,15 @@ const SidebarComponents = ({ designSystemName }) => {
                 Components Index
               </NavMenuLink>
             </NavMenuItem>
-            {/* {ds?.figma_file_key && (
-              <NavMenuItem>
-                <NavMenuExternalLink
-                  target="_blank"
-                  href={` https://www.figma.com/file/${ds.figma_file_key}`}
-                  rel="noopener noreferrer"
-                >
-                  Figma
-                  <OpenNewWindow width={14} />
-                </NavMenuExternalLink>
-              </NavMenuItem>
-            )} */}
+            <NavMenuItem>
+              <NavMenuLink
+                href={`/design-system/${system}/styles`}
+                active={path === `/design-system/${system}/styles`}
+              >
+                <ColorFilter />
+                Styles
+              </NavMenuLink>
+            </NavMenuItem>
             <NavMenuItem>
               <NavMenuLink
                 href={`/design-system/${system}/importFigmaComponents`}

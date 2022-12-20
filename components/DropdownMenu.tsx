@@ -9,7 +9,7 @@ export const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger;
 
 // eslint-disable-next-line react/display-name
 export const DropdownMenuContent = React.forwardRef(
-  ({ children, ...props }, forwardedRef) => {
+  ({ children, ...props }: any, forwardedRef) => {
     return (
       <DropdownMenuPrimitive.Portal>
         <DropdownMenuContentStyles {...props} ref={forwardedRef}>

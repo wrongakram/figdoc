@@ -39,7 +39,6 @@ import isHotkey from "is-hotkey";
 
 // Components
 import Spinner from "../Spinner";
-import { Button, Icon, Portal } from "./components";
 import { styled } from "@stitches/react";
 import {
   AlignCenter,

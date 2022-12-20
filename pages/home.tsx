@@ -12,7 +12,7 @@ import { useContext, useEffect, useState } from "react";
 import { createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 
 // Types
-import { DesignSystemData } from "../types";
+import { User, DesignSystemData } from "../lib/types";
 
 // Lodash
 import _ from "lodash";
@@ -62,11 +62,10 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
   };
 };
 
-const Home = ({ user, data }: { data: DesignSystemData }) => {
-  const [myDesignSystems, setMyDesignSystem] = useState([]);
-  const [sharedWithMeDesignSystems, setSharedWithMeDesignSystems] = useState(
-    []
-  );
+const Home = ({ user, data }: { user: User; data: DesignSystemData }) => {
+  const [myDesignSystems, setMyDesignSystem] = useState<DesignSystemData>([]);
+  const [sharedWithMeDesignSystems, setSharedWithMeDesignSystems] =
+    useState<DesignSystemData>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

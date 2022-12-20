@@ -86,7 +86,6 @@ const Home = () => {
             <HomeNavLeft>
               <HomeNavLogo>
                 <HomeNavLogoText>.figdoc</HomeNavLogoText>
-                <BetaLabel>Beta</BetaLabel>
               </HomeNavLogo>
             </HomeNavLeft>
             <HomeNavRight>
@@ -103,6 +102,9 @@ const Home = () => {
             </HomeNavRight>
           </HomeNav>
           <HomeHero>
+            <Label>
+              Keep in mind figdoc is in beta... so be aware of bugs 🐞
+            </Label>
             <HomeHeroText>
               <HomeHeroTitle>
                 Document your <span>Figma</span> Components with ease
@@ -218,16 +220,14 @@ const HomeNavRight = styled("div", {
   gap: 12,
 });
 
-const BetaLabel = styled("div", {
-  fontSize: 10,
-  textTransform: "uppercase",
-  letterSpacing: ".5px",
-  fontWeight: 600,
-  padding: "4px 6px",
-  backgroundColor: "$violet3",
-  color: "$violet11",
-  borderRadius: 6,
+const Label = styled("div", {
+  fontSize: 14,
+  padding: "8px 16px",
+  backgroundColor: "$violet4",
+  color: "$violet12",
+  borderRadius: 100,
   marginLeft: 12,
+  margin: "0 auto 40px",
 });
 
 const HomeHero = styled("div", {
@@ -257,7 +257,9 @@ const HomeHeroTitle = styled("div", {
   color: "$gray12",
   textAlign: "center",
   span: {
-    color: "$violet9",
+    color: "$green11",
+    background: "$green3",
+    padding: "0 20px",
   },
 });
 
