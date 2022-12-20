@@ -31,7 +31,7 @@ const ComponentDropdown = ({ children, showFigmaProps, setShowFigmaProps }) => {
         .delete()
         .eq("id", component);
 
-      mutate(`http://localhost:3000/api/design-systems/${system}`);
+      mutate(`/api/design-systems/${system}`);
       router.push(`/design-system/${system}`);
 
       if (error)

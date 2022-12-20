@@ -351,7 +351,7 @@ const MoreDropdown = ({ children, id, tableType }) => {
       // Delete Design System
       const { error } = await supabaseClient.from(db).delete().eq("id", id);
 
-      // mutate(`http://localhost:3000/api/design-systems/getAllDesignSystems`);
+      // mutate(`/api/design-systems/getAllDesignSystems`);
       router.reload();
 
       if (error)

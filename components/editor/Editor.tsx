@@ -168,9 +168,7 @@ const ComponentEditor = ({ data, readOnly, componentDocumentation }: any) => {
         .eq("id", id);
 
       setSavingStatus("saved");
-      mutate(
-        `http://localhost:3000/api/design-systems/${system}/component/${componentId}`
-      );
+      mutate(`/api/design-systems/${system}/component/${componentId}`);
 
       setTimeout(() => {
         setSavingStatus("idle");

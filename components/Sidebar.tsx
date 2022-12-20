@@ -414,9 +414,7 @@ const DesignSystemList = ({ setDesignSystemName }) => {
   const path = router.asPath;
   const { system } = router.query;
 
-  const { data, error } = useSWR(
-    `http://localhost:3000/api/design-systems/getAllDesignSystems`
-  );
+  const { data, error } = useSWR(`/api/design-systems/getAllDesignSystems`);
 
   useEffect(() => {
     if (data) {

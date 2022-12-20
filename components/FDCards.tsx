@@ -186,7 +186,7 @@ const DesignSystemCardDropdown = ({ children, id, owner }: any) => {
         .delete()
         .eq("user_id", user?.id);
 
-      mutate(`http://localhost:3000/api/design-systems/getAllDesignSystems`);
+      mutate(`/api/design-systems/getAllDesignSystems`);
       router.push(`/`);
 
       if (error)
@@ -206,7 +206,7 @@ const DesignSystemCardDropdown = ({ children, id, owner }: any) => {
         .delete()
         .eq("id", id);
 
-      mutate(`http://localhost:3000/api/design-systems/getAllDesignSystems`);
+      mutate(`/api/design-systems/getAllDesignSystems`);
       router.push(`/`);
 
       if (error)

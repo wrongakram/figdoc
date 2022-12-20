@@ -79,7 +79,7 @@ const Profile = ({ children }: any) => {
     try {
       // const { error } = await supabaseClient.auth.signOut();
 
-      const { error } = await fetch("http://localhost:3000/api/deleteUser", {
+      const { error } = await fetch("/api/deleteUser", {
         method: "POST",
         headers: new Headers({ "Content-Type": "application/json" }),
         credentials: "same-origin",

@@ -323,9 +323,7 @@ const ComponentsList = ({}) => {
 
   const [components, setComponents] = useState([]);
 
-  const { data, error } = useSWR(
-    `http://localhost:3000/api/design-systems/${system}`
-  );
+  const { data, error } = useSWR(`/api/design-systems/${system}`);
 
   useEffect(() => {
     if (data) {
@@ -439,7 +437,7 @@ const FDDropDown = ({ id, ds, system, children }: any) => {
         .delete()
         .eq("id", system);
 
-      mutate(`http://localhost:3000/api/design-systems/getAllDesignSystems`);
+      mutate(`/api/design-systems/getAllDesignSystems`);
       router.push(`/`);
 
       if (error)

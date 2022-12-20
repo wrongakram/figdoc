@@ -71,7 +71,7 @@ const EditDesignSystemDialog = ({ children }: any) => {
         ])
         .eq("id", system);
 
-      mutate(`http://localhost:3000/api/design-systems/getAllDesignSystems`);
+      mutate(`/api/design-systems/getAllDesignSystems`);
       router.push(`/`);
 
       if (error) throw error;

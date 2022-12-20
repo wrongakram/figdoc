@@ -12,7 +12,7 @@ const Invites = () => {
   const path = router.asPath;
   const { system } = router.query;
 
-  const { data, error } = useSWR(`http://localhost:3000/api/checkInvites`);
+  const { data, error } = useSWR(`/api/checkInvites`);
 
   if (error) {
     return <p>404</p>;

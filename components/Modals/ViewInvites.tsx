@@ -79,7 +79,7 @@ const ViewInvitesDialog = ({ children, data }: any) => {
       DECLINE_DESIGN_SYSTEM(system);
 
       if (data) {
-        mutate(`http://localhost:3000/api/design-systems/getAllDesignSystems`);
+        mutate(`/api/design-systems/getAllDesignSystems`);
         router.push(`/design-system/${data[0].design_system_id}`);
       }
 
