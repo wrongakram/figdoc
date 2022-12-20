@@ -279,11 +279,6 @@ const SidebarFooter = styled("div", {
 });
 
 const DashboardSidebar = ({ setDesignSystemName }) => {
-  const { theme, setTheme } = useTheme();
-  const toggleTheme = () => {
-    setTheme(theme == "light" ? "dark" : "light");
-  };
-
   const router = useRouter();
   const path = router.asPath;
   const user = useUser();
@@ -360,23 +355,7 @@ const DashboardSidebar = ({ setDesignSystemName }) => {
                 </NavMenuItem>
               </Tooltip.Root>
 
-              <Tooltip.Root>
-                <NavMenuItem>
-                  <Tooltip.Trigger asChild>
-                    <NavMenuLink onClick={toggleTheme}>
-                      {/* {theme === "light" ? <HalfMoon /> : <SunLight />} */}
-                      <HalfMoon />
-                    </NavMenuLink>
-                  </Tooltip.Trigger>
-                  <Tooltip.Portal>
-                    <TooltipContent side="right" sideOffset={8}>
-                      {theme === "light"
-                        ? "Bring the moon"
-                        : "Turn the lights on"}
-                    </TooltipContent>
-                  </Tooltip.Portal>
-                </NavMenuItem>
-              </Tooltip.Root>
+              <ThemeSwitch />
               <Divider />
               <Tooltip.Root>
                 <NavMenuItem>
@@ -408,6 +387,39 @@ const DashboardSidebar = ({ setDesignSystemName }) => {
 };
 
 export default DashboardSidebar;
+
+const ThemeSwitch = () => {
+  const [mounted, setMounted] = useState(false);
+  const { theme, setTheme } = useTheme();
+
+  // useEffect only runs on the client, so now we can safely show the UI
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
+
+  return (
+    <Tooltip.Root>
+      <NavMenuItem>
+        <Tooltip.Trigger asChild>
+          <NavMenuLink
+            onClick={() => setTheme(theme == "light" ? "dark" : "light")}
+          >
+            {theme === "light" ? <HalfMoon /> : <SunLight />}
+          </NavMenuLink>
+        </Tooltip.Trigger>
+        <Tooltip.Portal>
+          <TooltipContent side="right" sideOffset={8}>
+            {theme === "light" ? "Bring the moon" : "Turn the lights on"}
+          </TooltipContent>
+        </Tooltip.Portal>
+      </NavMenuItem>
+    </Tooltip.Root>
+  );
+};
 
 const DesignSystemList = ({ setDesignSystemName }) => {
   const router = useRouter();

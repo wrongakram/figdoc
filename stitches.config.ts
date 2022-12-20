@@ -39,6 +39,7 @@ export const {
       ...orange,
       ...violet,
       ...red,
+      primary: "$gray12",
     },
     space: {
       1: "4px",
@@ -97,5 +98,6 @@ export const darkTheme = createTheme("dark-theme", {
     ...pinkDark,
     ...yellowDark,
     ...redDark,
+    primary: "#fff",
   },
 });

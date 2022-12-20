@@ -3,7 +3,7 @@ import { styled, keyframes } from "../stitches.config";
 
 export const Button = styled("button", {
   cursor: "pointer",
-  background: "$gray12",
+  background: "$primary",
   color: "$gray1",
 
   fontSize: "$2",
