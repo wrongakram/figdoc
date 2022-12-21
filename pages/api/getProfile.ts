@@ -20,7 +20,7 @@ const ProtectedRoute: NextApiHandler = async (req, res) => {
   // Run queries with RLS on the server
   const { data } = await supabase
     .from("profiles")
-    .select("figma_token")
+    .select("*")
     .eq("id", session.user.id)
     .single();
 

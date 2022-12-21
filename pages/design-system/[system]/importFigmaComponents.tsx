@@ -325,8 +325,11 @@ const TabFigma = ({ data }) => {
               <div className="svg-container">
                 <Figma />
               </div>
-              <h3>0 components in your figma file</h3>
-              <p>Try creating a new component within your figma file</p>
+              <h3>0 published components in your figma file</h3>
+              <p>
+                Try creating a new component and publishing it within your figma
+                file. Figma only allows published components to be imported.
+              </p>
             </EmptyState>
           )}
         </>

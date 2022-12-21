@@ -35,6 +35,7 @@ import { styled } from "@stitches/react";
 import { FDComponentCard } from "../../../components/ComponentCards";
 import { useProfileStore } from "../../../context/ProfileContext";
 import Layout from "../../../components/Layout";
+import StylesTable from "../../../components/StylesTable";
 
 export const getServerSideProps: GetServerSideProps = async (
   ctx: GetServerSidePropsContext
@@ -119,7 +120,9 @@ const Styles = ({ data }: DesignSystemData) => {
       <PageHeader>
         <div>
           <PageTitle>Styles</PageTitle>
-          <PageDescription>Styles page</PageDescription>
+          <PageDescription>
+            All your Color, Text, Effect and Grid Styles in one place.
+          </PageDescription>
         </div>
       </PageHeader>
       {styles.meta?.styles.length === 0 ? (
@@ -144,8 +147,14 @@ const Styles = ({ data }: DesignSystemData) => {
           <TabsContent value="tab2">
             <TextTab data={styles} />
           </TabsContent>
-          <TabsContent value="tab3">Effects Styles</TabsContent>
-          <TabsContent value="tab4">Grid styles</TabsContent>
+          <TabsContent value="tab3">
+            {" "}
+            <EffectsTab data={styles} />
+          </TabsContent>
+          <TabsContent value="tab4">
+            {" "}
+            <GridsTab data={styles} />
+          </TabsContent>
         </TabsRoot>
       )}
     </Page>
@@ -174,24 +183,26 @@ const StylesTab = ({ data }: any) => {
       {loading ? (
         <div>loading...</div>
       ) : (
-        <pre>{JSON.stringify(stylesData, null, 2)}</pre>
+        <>
+          <StylesTable styles={stylesData} type="styles" />
+        </>
       )}
     </>
   );
 };
 
 const TextTab = ({ data }: any) => {
-  const [TextData, setTextData] = useState([]);
+  const [textData, setTextData] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useMemo(() => {
     setLoading(true);
     // only return styles that have the style_type of "FILL"
-    const colors = data.meta?.styles.filter((style: any) => {
+    const text = data.meta?.styles.filter((style: any) => {
       return style.style_type === "TEXT";
     });
 
-    setTextData(colors);
+    setTextData(text);
     setLoading(false);
   }, [data]);
 
@@ -200,7 +211,65 @@ const TextTab = ({ data }: any) => {
       {loading ? (
         <div>loading...</div>
       ) : (
-        <pre>{JSON.stringify(TextData, null, 2)}</pre>
+        <>
+          <StylesTable styles={textData} preview="small" />
+        </>
+      )}
+    </>
+  );
+};
+
+const EffectsTab = ({ data }: any) => {
+  const [textData, setTextData] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useMemo(() => {
+    setLoading(true);
+    // only return styles that have the style_type of "FILL"
+    const text = data.meta?.styles.filter((style: any) => {
+      return style.style_type === "EFFECT";
+    });
+
+    setTextData(text);
+    setLoading(false);
+  }, [data]);
+
+  return (
+    <>
+      {loading ? (
+        <div>loading...</div>
+      ) : (
+        <>
+          <StylesTable styles={textData} preview="small" />
+        </>
+      )}
+    </>
+  );
+};
+
+const GridsTab = ({ data }: any) => {
+  const [gridData, setGridData] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useMemo(() => {
+    setLoading(true);
+    // only return styles that have the style_type of "FILL"
+    const grid = data.meta?.styles.filter((style: any) => {
+      return style.style_type === "GRID";
+    });
+
+    setGridData(grid);
+    setLoading(false);
+  }, [data]);
+
+  return (
+    <>
+      {loading ? (
+        <div>loading...</div>
+      ) : (
+        <>
+          <StylesTable styles={gridData} preview="small" />
+        </>
       )}
     </>
   );

@@ -17,6 +17,8 @@ import { User, DesignSystemData } from "../lib/types";
 // Lodash
 import _ from "lodash";
 
+import { motion } from "framer-motion";
+
 // Components
 import { Button } from "../components/FDButton";
 import { Page, PageHeader, PageGrid } from "../components/Core";
@@ -129,10 +131,19 @@ const Home = ({ user, data }: { user: User; data: DesignSystemData }) => {
               </>
             ) : myDesignSystems.length == 0 &&
               sharedWithMeDesignSystems.length >= 1 ? null : (
-              <EmptyState>
-                <div className="svg-container">
+              <EmptyState css={{ marginTop: 160 }}>
+                <motion.div
+                  animate={{ y: [1, 4, 1] }}
+                  transition={{
+                    times: [0, 0.5, 1],
+                    repeat: Infinity,
+                    duration: 2,
+                  }}
+                  className="svg-container"
+                >
                   <Svg3DSelectFace />
-                </div>
+                </motion.div>
+
                 <h3>No Design Systems</h3>
                 <p>
                   You can create a new Design System by clicking the{" "}

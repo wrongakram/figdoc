@@ -82,17 +82,14 @@ export const Page = styled("div", {
 
 const Container = styled("div", {
   display: "flex",
-  width: "100%",
-  height: "100%",
+  flexDirection: "column",
   gap: "40px",
 });
 
 const ContainerChild = styled("div", {
-  flex: 1,
+  width: 720,
   height: "100%",
-  display: "flex",
-  flexDirection: "column",
-  gap: "40px",
+  margin: "0 auto",
 });
 
 const ComponentPage = ({ data, componentDocumentation }: any) => {
@@ -125,9 +122,7 @@ const ComponentPage = ({ data, componentDocumentation }: any) => {
         setShowFigmaProps={setShowFigmaProps}
       />
       <Container css={{ padding: "0 24px" }}>
-        <ContainerChild>
-          <FigmaComponentPreview url={data?.component[0].figma_url} />
-        </ContainerChild>
+        <FigmaComponentPreview url={data?.component[0].figma_url} />
         <ContainerChild key={data.component[0].id} css={{ gap: 16 }}>
           <ComponentEditor
             data={data}
@@ -135,7 +130,7 @@ const ComponentPage = ({ data, componentDocumentation }: any) => {
             component={component}
             readOnly={readOnly}
           />
-          {showFigmaProps && <ComponentFigmaProps designSystem={data} />}
+          {/* {showFigmaProps && <ComponentFigmaProps designSystem={data} />} */}
         </ContainerChild>
       </Container>
     </Page>
@@ -192,8 +187,8 @@ const TabsContent = styled(Tabs.Content, {
 // FIGMA EMBED
 
 const FigmaPreviewFrame = styled("div", {
-  height: "100%",
-  iframe: { border: "1px solid $gray5", borderRadius: 8 },
+  height: "300px",
+  iframe: { border: "1px solid $gray5", borderRadius: 12 },
 });
 
 const FigmaComponentPreview = ({ url }: any) => {

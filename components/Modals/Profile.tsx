@@ -14,11 +14,13 @@ import { gray } from "@radix-ui/colors/types/dark/gray";
 import { Cancel, Check } from "iconoir-react";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import FDAvatar from "../avatar";
+import { useProfileStore } from "../../context/ProfileContext";
 
 const Profile = ({ children }: any) => {
   const supabaseClient = useSupabaseClient();
   const user = useUser();
   const router = useRouter();
+  const { data }: any = useProfileStore();
 
   const initialData = {
     id: "",
@@ -35,23 +37,10 @@ const Profile = ({ children }: any) => {
   };
 
   useEffect(() => {
-    async function getProfileDetails() {
-      const { data, error } = await supabaseClient
-        .from("profiles")
-        .select("*")
-        .filter("id", "eq", user?.id)
-        .single();
-
-      if (error) {
-        console.log(error);
-      } else {
-        setProfileData(data);
-      }
-    }
     if (typeof user?.id !== "undefined") {
-      getProfileDetails();
+      setProfileData(data);
     }
-  }, [user]);
+  }, [user, data]);
 
   const updateFigmaToken = async () => {
     try {
@@ -59,7 +48,7 @@ const Profile = ({ children }: any) => {
         .from("profiles")
         .update([
           {
-            figma_token: profileData.figma_token,
+            figma_token: profileData?.figma_token,
           },
         ])
         .eq("id", user?.id);
@@ -132,7 +121,6 @@ const Profile = ({ children }: any) => {
               </Flex>
               <Button onClick={signout}>Sign out</Button>
             </Flex>
-            <pre>{JSON.stringify(profileData, null, 2)}</pre>
             <Divider />
             <div style={{ marginBottom: 32 }}>
               <SectionHeader>Figma access</SectionHeader>
@@ -153,14 +141,12 @@ const Profile = ({ children }: any) => {
                 name="figma_token"
                 id="figma_token"
                 placeholder="figd_iAjz5jxSgXD0N-3S1w_9iMNBv1KdYhUZHa8cDGAF"
-                defaultValue={profileData.figma_token}
+                defaultValue={profileData?.figma_token}
                 onChange={handleChange}
                 onBlur={updateFigmaToken}
               />
             </Fieldset>
-
             <Divider />
-
             <div style={{ marginBottom: 32 }}>
               <SectionHeader>Delete account</SectionHeader>
               <Paragraph css={{ padding: "4px 0 12px 0" }}>
@@ -170,7 +156,6 @@ const Profile = ({ children }: any) => {
                 Delete account
               </Button>
             </div>
-
             <Dialog.Close asChild>
               <IconButton className="IconButton" aria-label="Close">
                 <Cancel />

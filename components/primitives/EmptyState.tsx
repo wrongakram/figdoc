@@ -21,6 +21,7 @@ export const EmptyState = styled("div", {
       width: 28,
       height: 28,
       color: "$gray500",
+      color: "$gray500",
     },
   },
   h3: {
