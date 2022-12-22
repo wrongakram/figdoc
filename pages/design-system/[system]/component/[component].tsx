@@ -32,6 +32,7 @@ import { EditorPlayground } from "../../../../components/editor/EditorPlayground
 import dynamic from "next/dynamic";
 import ComponentFigmaProps from "../../../../components/ComponentProps";
 import Layout from "../../../../components/Layout";
+import FigmaComponentPreview from "../../../../components/editor/FigmaComponentPreview";
 const ComponentEditor = dynamic(
   () => import("../../../../components/editor/Editor"),
   {
@@ -100,17 +101,11 @@ const ComponentPage = ({ data, componentDocumentation }: any) => {
   const [currentMark, setCurrentMark] = useState(null);
   const [publishing, setPublishing] = useState(false);
   const [disabled, setDisabled] = useState(true);
-  const [readOnly, setReadOnly] = useState(true);
+  const [readOnly, setReadOnly] = useState(false);
   const [showFigmaProps, setShowFigmaProps] = useState(true);
 
   const renderElement = useCallback((props) => <Element {...props} />, []);
   const renderLeaf = useCallback((props) => <Leaf {...props} />, []);
-
-  useEffect(() => {
-    if (data) {
-      setReadOnly(true);
-    }
-  }, [data, component]);
 
   return (
     <Page css={{ padding: 0 }}>
@@ -122,7 +117,6 @@ const ComponentPage = ({ data, componentDocumentation }: any) => {
         setShowFigmaProps={setShowFigmaProps}
       />
       <Container css={{ padding: "0 24px" }}>
-        <FigmaComponentPreview url={data?.component[0].figma_url} />
         <ContainerChild key={data.component[0].id} css={{ gap: 16 }}>
           <ComponentEditor
             data={data}
@@ -185,19 +179,6 @@ const TabsContent = styled(Tabs.Content, {
 // EDITOR COMPONENT
 
 // FIGMA EMBED
-
-const FigmaPreviewFrame = styled("div", {
-  height: "300px",
-  iframe: { border: "1px solid $gray5", borderRadius: 12 },
-});
-
-const FigmaComponentPreview = ({ url }: any) => {
-  return (
-    <FigmaPreviewFrame>
-      <iframe width="100%" height="100%" src={url}></iframe>
-    </FigmaPreviewFrame>
-  );
-};
 
 ComponentPage.getLayout = function getLayout(page: ReactElement) {
   return <Layout>{page}</Layout>;

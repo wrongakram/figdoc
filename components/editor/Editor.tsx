@@ -6,12 +6,21 @@ import React, {
   useState,
 } from "react";
 
+import * as ReactDOM from "react-dom";
+
 import * as Toolbar from "@radix-ui/react-toolbar";
 import { violet, blackA, mauve } from "@radix-ui/colors";
 
 // Slate
 
-import { Slate, Editable, withReact, useSlate, useFocused } from "slate-react";
+import {
+  Slate,
+  Editable,
+  withReact,
+  useSlate,
+  useFocused,
+  useSlateStatic,
+} from "slate-react";
 import {
   Transforms,
   createEditor,
@@ -49,6 +58,7 @@ import {
   Code,
   Italic,
   List,
+  MediaVideo,
   NumberedListLeft,
   TerminalOutline,
   Underline,
@@ -58,6 +68,7 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { contentStyles, DropdownMenuItem } from "../DropdownMenu";
 import { H4 } from "../primitives/Text";
 import { Flex } from "../primitives/structure";
+import FigmaComponentPreview from "./FigmaComponentPreview";
 
 const HOTKEYS = {
   "mod+b": "bold",
@@ -69,6 +80,13 @@ const HOTKEYS = {
 const LIST_TYPES = ["numbered-list", "bulleted-list"];
 const TEXT_ALIGN_TYPES = ["left", "center", "right", "justify"];
 
+const withEmbeds = (editor) => {
+  const { isVoid } = editor;
+  editor.isVoid = (element) =>
+    element.type === "embed" ? true : isVoid(element);
+  return editor;
+};
+
 const withLayout = (editor) => {
   const { normalizeNode } = editor;
 
@@ -77,7 +95,7 @@ const withLayout = (editor) => {
       if (editor.children.length < 1) {
         const title: TitleElement = {
           type: "title",
-          children: [{ text: "Untitled" }],
+          children: [{ text: "" }],
         };
         Transforms.insertNodes(editor, title, { at: path.concat(0) });
       }
@@ -85,17 +103,25 @@ const withLayout = (editor) => {
       if (editor.children.length < 2) {
         const description: DescriptionElement = {
           type: "description",
-          children: [{ text: "Enter description here..." }],
+          children: [{ text: "" }],
         };
         Transforms.insertNodes(editor, description, { at: path.concat(1) });
       }
 
       if (editor.children.length < 3) {
+        const embed: EmbedElement = {
+          type: "embed",
+          children: [{ text: "" }],
+        };
+        Transforms.insertNodes(editor, embed, { at: path.concat(2) });
+      }
+
+      if (editor.children.length < 4) {
         const paragraph: ParagraphElement = {
           type: "paragraph",
           children: [{ text: "" }],
         };
-        Transforms.insertNodes(editor, paragraph, { at: path.concat(2) });
+        Transforms.insertNodes(editor, paragraph, { at: path.concat(3) });
       }
 
       for (const [child, childPath] of Node.children(editor, path)) {
@@ -120,6 +146,10 @@ const withLayout = (editor) => {
             enforceType(type);
             break;
           case 2:
+            type = "embed";
+            enforceType(type);
+            break;
+          case 3:
             type = "paragraph";
             enforceType(type);
           default:
@@ -142,11 +172,14 @@ const ComponentEditor = ({ data, readOnly, componentDocumentation }: any) => {
 
   const [savingStatus, setSavingStatus] = useState("idle");
 
-  const renderElement = useCallback((props) => <Element {...props} />, []);
+  const renderElement = useCallback(
+    (props) => <Element {...props} data={data} />,
+    []
+  );
   const renderLeaf = useCallback((props) => <Leaf {...props} />, []);
 
   const editor = useMemo(
-    () => withHistory(withLayout(withReact(createEditor()))),
+    () => withHistory(withLayout(withEmbeds(withReact(createEditor())))),
     []
   );
 
@@ -206,6 +239,8 @@ const ComponentEditor = ({ data, readOnly, componentDocumentation }: any) => {
 
   return (
     <>
+      {/* <pre>{JSON.stringify(componentDocumentation, null, 2)}</pre> */}
+
       {componentDocumentation ? (
         <Slate
           editor={editor}
@@ -219,59 +254,37 @@ const ComponentEditor = ({ data, readOnly, componentDocumentation }: any) => {
             }
           }}
         >
-          {!readOnly && (
-            <ToolbarRoot aria-label="Formatting options">
-              <Toolbar.ToggleGroup type="multiple" aria-label="Text formatting">
-                <BlockButton format="heading-one">
-                  <TextIcon>H1</TextIcon>
-                </BlockButton>
-                <BlockButton format="heading-two">
-                  <TextIcon>H2</TextIcon>
-                </BlockButton>
-              </Toolbar.ToggleGroup>
-              <ToolbarSeparator />
-              <Toolbar.ToggleGroup type="multiple" aria-label="Text formatting">
-                <MarkButton format="bold">
-                  <Bold />
-                </MarkButton>
-                <MarkButton format="italic">
-                  <Italic />
-                </MarkButton>
-                <MarkButton format="underline">
-                  <Underline />
-                </MarkButton>
-                <MarkButton format="code">
-                  <Code />
-                </MarkButton>
-              </Toolbar.ToggleGroup>
-              <ToolbarSeparator />
-              <Toolbar.ToggleGroup type="single" aria-label="Text formatting">
-                <BlockButton format="numbered-list">
-                  <NumberedListLeft />
-                </BlockButton>
-                <BlockButton format="bulleted-list">
-                  <List />
-                </BlockButton>
-              </Toolbar.ToggleGroup>
-              <Flex
-                alignItemsCenter
-                css={{ marginLeft: "auto", marginRight: 8 }}
-              >
-                {savingStatus === "idle" ? null : savingStatus === "saving" ? (
-                  <SaveMessage>Saving...</SaveMessage>
-                ) : savingStatus === "saved" ? (
-                  <SaveMessage>Saved!</SaveMessage>
-                ) : savingStatus === "error" ? (
-                  <SaveMessage>Error... couldn&apos;t save</SaveMessage>
-                ) : null}
-              </Flex>
-            </ToolbarRoot>
-          )}
-
+          <HoveringToolbar />
           <Editable
+            // decorate={([node, path]) => {
+            //   if (editor.selection != null) {
+            //     if (
+            //       !Editor.isEditor(node) &&
+            //       Editor.string(editor, [path[0]]) === "" &&
+            //       Range.includes(editor.selection, path) &&
+            //       Range.isCollapsed(editor.selection)
+            //     ) {
+            //       return [
+            //         {
+            //           ...editor.selection,
+            //           placeholder: true,
+            //         },
+            //       ];
+            //     }
+            //   }
+            //   return [];
+            // }}
             renderElement={renderElement}
             renderLeaf={renderLeaf}
-            placeholder="Enter a title…"
+            renderPlaceholder={({ children, attributes }) => (
+              <div {...attributes}>
+                <p>{children}</p>
+                <pre>
+                  Use the renderPlaceholder prop to customize rendering of the
+                  placeholder
+                </pre>
+              </div>
+            )}
             spellCheck
             readOnly={readOnly}
             onKeyDown={(event) => {
@@ -280,6 +293,51 @@ const ComponentEditor = ({ data, readOnly, componentDocumentation }: any) => {
                   event.preventDefault();
                   const mark = HOTKEYS[hotkey];
                   toggleMark(editor, mark);
+                }
+              }
+
+              if (event.key === "Enter") {
+                const selectedElement = Node.descendant(
+                  editor,
+                  editor.selection.anchor.path.slice(0, -1)
+                );
+
+                // Replace 'title' with the type of the element which you wish to "break out" from
+                if (selectedElement.type === "title") {
+                  // alert('You pressed "Enter" in the title element!');
+                  event.preventDefault();
+                  // Take the cursor to the end of the second line
+                  Transforms.move(editor, { distance: 1, unit: "line" });
+                }
+
+                if (selectedElement.type === "description") {
+                  // alert('You pressed "Enter" in the title element!');
+                  event.preventDefault();
+                  // Take the cursor to the end of the second line
+                  Transforms.move(editor, { distance: 3, unit: "line" });
+                }
+
+                if (
+                  selectedElement.type === "heading-one" ||
+                  selectedElement.type === "heading-two"
+                ) {
+                  event.preventDefault();
+                  const selectedLeaf = Node.descendant(
+                    editor,
+                    editor.selection.anchor.path
+                  );
+
+                  if (
+                    selectedLeaf.text.length === editor.selection.anchor.offset
+                  ) {
+                    Transforms.insertNodes(editor, {
+                      type: "paragraph",
+                      children: [{ text: "", marks: [] }],
+                    });
+                  } else {
+                    Transforms.splitNodes(editor);
+                    Transforms.setNodes(editor, { type: "paragraph" });
+                  }
                 }
               }
             }}
@@ -367,23 +425,72 @@ const isMarkActive = (editor, format) => {
   return marks ? marks[format] === true : false;
 };
 
-const Element = ({ attributes, children, element }) => {
+const Element = (props) => {
+  const { attributes, children, element, data } = props;
+
   const style = { textAlign: element.align };
   switch (element.type) {
     case "title":
       return (
-        <h1 style={{ fontSize: "40px" }} {...attributes}>
-          {children}
-        </h1>
+        <div style={{ position: "relative" }}>
+          {element.children[0].text === "" && (
+            <h1
+              style={{
+                fontSize: "36px",
+                fontWeight: 500,
+                letterSpacing: "-.04rem",
+                opacity: 0.3,
+                position: "absolute",
+                top: 0,
+              }}
+              {...attributes}
+              contentEditable={false}
+            >
+              Untitled
+            </h1>
+          )}
+          <h1
+            style={{
+              fontSize: "36px",
+              fontWeight: 500,
+              letterSpacing: "-.04rem",
+            }}
+            {...attributes}
+          >
+            {children}
+          </h1>
+        </div>
       );
     case "description":
       return (
-        <H4
-          css={{ fontWeight: 400, color: "$gray10", marginTop: 8 }}
-          {...attributes}
-        >
-          {children}
-        </H4>
+        <div style={{ position: "relative" }}>
+          {element.children[0].text === "" && (
+            <H4
+              style={{
+                opacity: 0.3,
+                position: "absolute",
+                top: 0,
+                fontWeight: 400,
+              }}
+              {...attributes}
+              contentEditable={false}
+            >
+              Enter description here...
+            </H4>
+          )}
+          <H4
+            css={{ fontWeight: 400, color: "$gray10", marginTop: 8 }}
+            {...attributes}
+          >
+            {children}
+          </H4>
+        </div>
+      );
+    case "embed":
+      return (
+        <>
+          <EmbedElement {...props} />
+        </>
       );
     case "paragraph":
       return <div {...attributes}>{children}</div>;
@@ -432,6 +539,128 @@ const Element = ({ attributes, children, element }) => {
   }
 };
 
+const EmbedElement = ({ attributes, children, element, data }) => {
+  const editor = useSlateStatic();
+  const { url } = element;
+  return (
+    <div {...attributes} contentEditable={false} style={{ userSelect: "none" }}>
+      <div style={{ marginBottom: 24 }}>
+        <Divider />
+        <FigmaComponentPreview url={data?.component[0].figma_url} />
+      </div>
+      {children}
+    </div>
+  );
+};
+
+const HoveringToolbar = () => {
+  const ref = useRef<HTMLDivElement | null>();
+  const editor = useSlate();
+  const inFocus = useFocused();
+
+  useEffect(() => {
+    const el = ref.current;
+    const { selection } = editor;
+
+    if (!el) {
+      return;
+    }
+
+    if (
+      !selection ||
+      !inFocus ||
+      Range.isCollapsed(selection) ||
+      Editor.string(editor, selection) === ""
+    ) {
+      el.removeAttribute("style");
+      return;
+    }
+
+    const domSelection = window.getSelection();
+    const domRange = domSelection.getRangeAt(0);
+    const rect = domRange.getBoundingClientRect();
+    el.style.opacity = "1";
+    el.style.top = `${rect.top + window.pageYOffset - el.offsetHeight}px`;
+    el.style.left = `${
+      rect.left + window.pageXOffset - el.offsetWidth / 2 + rect.width / 2
+    }px`;
+  });
+
+  return (
+    <Portal>
+      <FloatingToolbar ref={ref}>
+        <ToolbarRoot aria-label="Formatting options">
+          <Toolbar.ToggleGroup type="multiple" aria-label="Text formatting">
+            <BlockButton format="heading-one">
+              <TextIcon>H1</TextIcon>
+            </BlockButton>
+
+            <BlockButton format="heading-two">
+              <TextIcon>H2</TextIcon>
+            </BlockButton>
+          </Toolbar.ToggleGroup>
+          <ToolbarSeparator />
+          <Toolbar.ToggleGroup type="multiple" aria-label="Text formatting">
+            <MarkButton format="bold">
+              <Bold />
+            </MarkButton>
+            <MarkButton format="italic">
+              <Italic />
+            </MarkButton>
+            <MarkButton format="underline">
+              <Underline />
+            </MarkButton>
+            <MarkButton format="code">
+              <Code />
+            </MarkButton>
+          </Toolbar.ToggleGroup>
+          <ToolbarSeparator />
+          <Toolbar.ToggleGroup type="single" aria-label="Text formatting">
+            <BlockButton format="numbered-list">
+              <NumberedListLeft />
+            </BlockButton>
+            <BlockButton format="bulleted-list">
+              <List />
+            </BlockButton>
+          </Toolbar.ToggleGroup>
+          {/* <Flex alignItemsCenter css={{ marginLeft: "auto", marginRight: 8 }}>
+          {savingStatus === "idle" ? null : savingStatus === "saving" ? (
+            <SaveMessage>Saving...</SaveMessage>
+          ) : savingStatus === "saved" ? (
+            <SaveMessage>Saved!</SaveMessage>
+          ) : savingStatus === "error" ? (
+            <SaveMessage>Error... couldn&apos;t save</SaveMessage>
+          ) : null}
+        </Flex> */}
+        </ToolbarRoot>
+      </FloatingToolbar>
+    </Portal>
+  );
+};
+
+const toggleFormat = (editor, format) => {
+  const isActive = isFormatActive(editor, format);
+  Transforms.setNodes(
+    editor,
+    { [format]: isActive ? null : true },
+    { match: Text.isText, split: true }
+  );
+};
+
+const isFormatActive = (editor, format) => {
+  const [match] = Editor.nodes(editor, {
+    match: (n) => n[format] === true,
+    mode: "all",
+  });
+  return !!match;
+};
+
+export const Portal = ({ children }) => {
+  return typeof document === "object"
+    ? ReactDOM.createPortal(children, document.body)
+    : null;
+};
+
 const Leaf = ({ attributes, children, leaf }) => {
   if (leaf.bold) {
     children = <strong>{children}</strong>;
@@ -448,6 +677,20 @@ const Leaf = ({ attributes, children, leaf }) => {
   if (leaf.underline) {
     children = <u>{children}</u>;
   }
+
+  // if (leaf.placeholder) {
+  //   return (
+  //     <div style={{ position: "relative" }}>
+  //       <span {...attributes}>{children}</span>
+  //       <span
+  //         style={{ opacity: 0.3, position: "absolute", top: 0 }}
+  //         contentEditable={false}
+  //       >
+  //         Type / to open menu
+  //       </span>
+  //     </div>
+  //   );
+  // }
 
   return <span {...attributes}>{children}</span>;
 };
@@ -602,4 +845,25 @@ const CodeBlock = styled("code", {
 const SaveMessage = styled("span", {
   fontSize: 14,
   color: "$gray9",
+});
+
+const Divider = styled("div", {
+  height: 1,
+  backgroundColor: "$gray3",
+  margin: "32px 0",
+});
+
+const FloatingToolbar = styled("div", {
+  position: "absolute",
+  zIndex: 1,
+  top: -10000,
+  left: -10000,
+  marginTop: -6,
+  opacity: 0,
+  transition: "opacity 75ms",
+  willChange: "transform",
+  transform: "scale(0.9)",
+  transformOrigin: "0 0",
+  backgroundColor: "white",
+  borderRadius: 4,
 });

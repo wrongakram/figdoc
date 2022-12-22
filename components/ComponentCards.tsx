@@ -31,6 +31,7 @@ import FDSystemIcon from "./FDSystemIcon";
 import Image from "next/image";
 import Spinner from "./Spinner";
 import { useProfileStore } from "../context/ProfileContext";
+import { capitalizeFirstLetter } from "../utils/functions/capitalizeFirstLetter";
 
 const ComponentCard = styled(Link, {
   position: "relative",
@@ -196,11 +197,11 @@ export const FDComponentCard = ({
       {!component.nodeId && <FigmaTag>CUSTOM</FigmaTag>}
       <div className="content">
         <div style={{ display: "flex" }}>
-          <div className="title">{component.title}</div>
+          <div className="title">
+            {capitalizeFirstLetter(component.title || "Untitled")}
+          </div>
         </div>
-        <div className="description">
-          A compact element that represents an input, attribute, or action.
-        </div>
+        <div className="description">{component.description}</div>
       </div>
       <DesignSystemCardDropdown id={component?.id}>
         <IconButton>

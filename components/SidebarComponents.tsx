@@ -389,7 +389,9 @@ const ComponentsList = ({}) => {
                             href={`/design-system/${system}/component/${componentItem?.id}`}
                             active={component == componentItem.id}
                           >
-                            {capitalizeFirstLetter(componentItem.title)}
+                            {capitalizeFirstLetter(
+                              componentItem.title || "Untitled"
+                            )}
                           </NavMenuLink>
                         </NavMenuItem>
                       );

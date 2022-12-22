@@ -51,6 +51,17 @@ const CreateComponent = ({ children }: any) => {
                 children: [{ text: componentData.title }],
               },
               {
+                type: "description",
+                children: [{ text: componentData.description }],
+              },
+              {
+                type: "embed",
+                url:
+                  "https://www.figma.com/embed?embed_host=astra&url=" +
+                  componentData.figma_url,
+                children: [{ text: "" }],
+              },
+              {
                 type: "paragraph",
                 children: [{ text: "" }],
               },
