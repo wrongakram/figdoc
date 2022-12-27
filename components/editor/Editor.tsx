@@ -63,10 +63,11 @@ import {
   TerminalOutline,
   Underline,
 } from "iconoir-react";
+import ComponentFigmaProps from "../ComponentProps";
 
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { contentStyles, DropdownMenuItem } from "../DropdownMenu";
-import { H4 } from "../primitives/Text";
+import { H3, H4 } from "../primitives/Text";
 import { Flex } from "../primitives/structure";
 import FigmaComponentPreview from "./FigmaComponentPreview";
 
@@ -83,7 +84,11 @@ const TEXT_ALIGN_TYPES = ["left", "center", "right", "justify"];
 const withEmbeds = (editor) => {
   const { isVoid } = editor;
   editor.isVoid = (element) =>
-    element.type === "embed" ? true : isVoid(element);
+    element.type === "embed"
+      ? true
+      : isVoid(element) || element.type === "props"
+      ? true
+      : isVoid(element);
   return editor;
 };
 
@@ -95,7 +100,7 @@ const withLayout = (editor) => {
       if (editor.children.length < 1) {
         const title: TitleElement = {
           type: "title",
-          children: [{ text: "" }],
+          children: [{ text: "Untitled" }],
         };
         Transforms.insertNodes(editor, title, { at: path.concat(0) });
       }
@@ -103,7 +108,7 @@ const withLayout = (editor) => {
       if (editor.children.length < 2) {
         const description: DescriptionElement = {
           type: "description",
-          children: [{ text: "" }],
+          children: [{ text: "Description... " }],
         };
         Transforms.insertNodes(editor, description, { at: path.concat(1) });
       }
@@ -117,11 +122,19 @@ const withLayout = (editor) => {
       }
 
       if (editor.children.length < 4) {
+        const props: PropsElement = {
+          type: "props",
+          children: [{ text: "" }],
+        };
+        Transforms.insertNodes(editor, props, { at: path.concat(3) });
+      }
+
+      if (editor.children.length < 5) {
         const paragraph: ParagraphElement = {
           type: "paragraph",
           children: [{ text: "" }],
         };
-        Transforms.insertNodes(editor, paragraph, { at: path.concat(3) });
+        Transforms.insertNodes(editor, paragraph, { at: path.concat(4) });
       }
 
       for (const [child, childPath] of Node.children(editor, path)) {
@@ -150,6 +163,10 @@ const withLayout = (editor) => {
             enforceType(type);
             break;
           case 3:
+            type = "props";
+            enforceType(type);
+            break;
+          case 4:
             type = "paragraph";
             enforceType(type);
           default:
@@ -164,7 +181,7 @@ const withLayout = (editor) => {
   return editor;
 };
 
-const ComponentEditor = ({ data, readOnly, componentDocumentation }: any) => {
+const ComponentEditor = ({ data, readOnly }: any) => {
   const router = useRouter();
   const { system, component: componentId } = router.query;
   const supabase = useSupabaseClient();
@@ -182,6 +199,10 @@ const ComponentEditor = ({ data, readOnly, componentDocumentation }: any) => {
     () => withHistory(withLayout(withEmbeds(withReact(createEditor())))),
     []
   );
+
+  useMemo(() => {
+    Transforms.select(editor, { offset: 0, path: [0, 0] });
+  }, [editor]);
 
   // const [editor] = useState(() =>
   //   withHistory(withLayout(withReact(createEditor())))
@@ -241,108 +262,93 @@ const ComponentEditor = ({ data, readOnly, componentDocumentation }: any) => {
     <>
       {/* <pre>{JSON.stringify(componentDocumentation, null, 2)}</pre> */}
 
-      {componentDocumentation ? (
-        <Slate
-          editor={editor}
-          value={componentDocumentation}
-          onChange={(value) => {
-            const isAstChange = editor.operations.some(
-              (op) => "set_selection" !== op.type
-            );
-            if (isAstChange) {
-              debouncedChangeHandler(value, data.component[0].id);
-            }
-          }}
-        >
-          <HoveringToolbar />
-          <Editable
-            // decorate={([node, path]) => {
-            //   if (editor.selection != null) {
-            //     if (
-            //       !Editor.isEditor(node) &&
-            //       Editor.string(editor, [path[0]]) === "" &&
-            //       Range.includes(editor.selection, path) &&
-            //       Range.isCollapsed(editor.selection)
-            //     ) {
-            //       return [
-            //         {
-            //           ...editor.selection,
-            //           placeholder: true,
-            //         },
-            //       ];
-            //     }
-            //   }
-            //   return [];
-            // }}
-            renderElement={renderElement}
-            renderLeaf={renderLeaf}
-            renderPlaceholder={({ children, attributes }) => (
-              <div {...attributes}>
-                <p>{children}</p>
-                <pre>
-                  Use the renderPlaceholder prop to customize rendering of the
-                  placeholder
-                </pre>
-              </div>
-            )}
-            spellCheck
-            readOnly={readOnly}
-            onKeyDown={(event) => {
-              for (const hotkey in HOTKEYS) {
-                if (isHotkey(hotkey, event as any)) {
-                  event.preventDefault();
-                  const mark = HOTKEYS[hotkey];
-                  toggleMark(editor, mark);
-                }
-              }
-
-              if (event.key === "Enter") {
-                const selectedElement = Node.descendant(
-                  editor,
-                  editor.selection.anchor.path.slice(0, -1)
-                );
-
-                // Replace 'title' with the type of the element which you wish to "break out" from
-                if (selectedElement.type === "title") {
-                  // alert('You pressed "Enter" in the title element!');
-                  event.preventDefault();
-                  // Take the cursor to the end of the second line
-                  Transforms.move(editor, { distance: 1, unit: "line" });
-                }
-
-                if (selectedElement.type === "description") {
-                  // alert('You pressed "Enter" in the title element!');
-                  event.preventDefault();
-                  // Take the cursor to the end of the second line
-                  Transforms.move(editor, { distance: 3, unit: "line" });
-                }
-
-                if (
-                  selectedElement.type === "heading-one" ||
-                  selectedElement.type === "heading-two"
-                ) {
-                  event.preventDefault();
-                  const selectedLeaf = Node.descendant(
-                    editor,
-                    editor.selection.anchor.path
-                  );
-
-                  if (
-                    selectedLeaf.text.length === editor.selection.anchor.offset
-                  ) {
-                    Transforms.insertNodes(editor, {
-                      type: "paragraph",
-                      children: [{ text: "", marks: [] }],
-                    });
-                  } else {
-                    Transforms.splitNodes(editor);
-                    Transforms.setNodes(editor, { type: "paragraph" });
-                  }
-                }
+      {data ? (
+        <>
+          <Slate
+            editor={editor}
+            value={data.component[0].documentation}
+            onChange={(value) => {
+              const isAstChange = editor.operations.some(
+                (op) => "set_selection" !== op.type
+              );
+              if (isAstChange) {
+                debouncedChangeHandler(value, data.component[0].id);
               }
             }}
-          />
-        </Slate>
+          >
+            <HoveringToolbar />
+            <Editable
+              renderElement={renderElement}
+              renderLeaf={renderLeaf}
+              renderPlaceholder={({ children, attributes }) => (
+                <div {...attributes}>
+                  <p>{children}</p>
+                  <pre>
+                    Use the renderPlaceholder prop to customize rendering of the
+                    placeholder
+                  </pre>
+                </div>
+              )}
+              spellCheck
+              readOnly={readOnly}
+              onKeyDown={(event) => {
+                for (const hotkey in HOTKEYS) {
+                  if (isHotkey(hotkey, event as any)) {
+                    event.preventDefault();
+                    const mark = HOTKEYS[hotkey];
+                    toggleMark(editor, mark);
+                  }
+                }
+
+                if (event.key === "Enter") {
+                  const selectedElement = Node.descendant(
+                    editor,
+                    editor.selection.anchor.path.slice(0, -1)
+                  );
+
+                  // Replace 'title' with the type of the element which you wish to "break out" from
+                  if (selectedElement.type === "title") {
+                    // alert('You pressed "Enter" in the title element!');
+                    event.preventDefault();
+                    // Take the cursor to the end of the second line
+                    Transforms.move(editor, { distance: 1, unit: "line" });
+                  }
+
+                  if (selectedElement.type === "description") {
+                    // alert('You pressed "Enter" in the title element!');
+                    event.preventDefault();
+                    // Take the cursor to the end of the second line
+                    Transforms.move(editor, { distance: 3, unit: "line" });
+                  }
+
+                  if (
+                    selectedElement.type === "heading-one" ||
+                    selectedElement.type === "heading-two"
+                  ) {
+                    event.preventDefault();
+                    const selectedLeaf = Node.descendant(
+                      editor,
+                      editor.selection.anchor.path
+                    );
+
+                    if (
+                      selectedLeaf.text.length ===
+                      editor.selection.anchor.offset
+                    ) {
+                      Transforms.insertNodes(editor, {
+                        type: "paragraph",
+                        children: [{ text: "", marks: [] }],
+                      });
+                    } else {
+                      Transforms.splitNodes(editor);
+                      Transforms.setNodes(editor, { type: "paragraph" });
+                    }
+                  }
+                }
+              }}
+            />
+          </Slate>
+        </>
       ) : (
         <div
           style={{
@@ -427,8 +433,8 @@ const isMarkActive = (editor, format) => {
 
 const Element = (props) => {
   const { attributes, children, element, data } = props;
-
   const style = { textAlign: element.align };
+
   switch (element.type) {
     case "title":
       return (
@@ -442,6 +448,7 @@ const Element = (props) => {
                 opacity: 0.3,
                 position: "absolute",
                 top: 0,
+                pointerEvents: "none",
               }}
               {...attributes}
               contentEditable={false}
@@ -471,6 +478,7 @@ const Element = (props) => {
                 position: "absolute",
                 top: 0,
                 fontWeight: 400,
+                pointerEvents: "none",
               }}
               {...attributes}
               contentEditable={false}
@@ -490,6 +498,22 @@ const Element = (props) => {
       return (
         <>
           <EmbedElement {...props} />
+        </>
+      );
+    case "props":
+      return (
+        <>
+          <div
+            {...attributes}
+            {...props}
+            contentEditable={false}
+            style={{ userSelect: "none" }}
+          >
+            <div style={{ margin: "12px 0 24px 0" }}>
+              <ComponentFigmaProps designSystem={data} />
+            </div>
+            {children}
+          </div>
         </>
       );
     case "paragraph":
@@ -539,9 +563,7 @@ const Element = (props) => {
   }
 };
 
-const EmbedElement = ({ attributes, children, element, data }) => {
-  const editor = useSlateStatic();
-  const { url } = element;
+const EmbedElement = ({ attributes, children, data }) => {
   return (
     <div {...attributes} contentEditable={false} style={{ userSelect: "none" }}>
       <div style={{ marginBottom: 24 }}>

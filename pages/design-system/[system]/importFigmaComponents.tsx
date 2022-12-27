@@ -30,8 +30,9 @@ import ImportTable from "../../../components/Table";
 import Spinner from "../../../components/Spinner";
 import { useProfileStore } from "../../../context/ProfileContext";
 import EditDesignSystemDialog from "../../../components/Modals/EditDesignSystem";
-import { Figma, WarningTriangleOutline } from "iconoir-react";
+import { Figma, Refresh, WarningTriangleOutline } from "iconoir-react";
 import Layout from "../../../components/Layout";
+import { mutate } from "swr";
 
 // This gets called on every request
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
@@ -70,6 +71,160 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 const ImportFigmaComponents = ({ data, designSystem }: any) => {
   const router = useRouter();
   const { system } = router.query;
+
+  const supabaseClient = useSupabaseClient();
+  const user = useUser();
+
+  // States NEW
+  const [parentComponents, setParentComponents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [bulkImportLoading, setBulkImportLoading] = useState(false);
+
+  // Table Data
+  const [rowSelection, setRowSelection] = useState({});
+  const [selectedComponents, setSelectedComponents] = useState([]);
+
+  const { data: figmaToken } = useProfileStore();
+
+  const { data: figmaComponentsAPI, error: figmaComponentsAPIError } =
+    useSWRImmutable([
+      "https://api.figma.com/v1/files/" + data.figma_file_key + "/components",
+      {
+        method: "GET",
+        headers: {
+          "X-Figma-Token": figmaToken?.figma_token,
+        },
+      },
+    ]);
+
+  const { data: figmaFileAPI, error: figmaFileAPIError } = useSWRImmutable([
+    "https://api.figma.com/v1/files/" + data.figma_file_key,
+    {
+      method: "GET",
+      headers: {
+        "X-Figma-Token": figmaToken?.figma_token,
+      },
+    },
+  ]);
+
+  useEffect(() => {
+    if (figmaComponentsAPI && figmaFileAPI) {
+      let componentsFromFigma: any[] = _.uniqBy(
+        figmaComponentsAPI.meta?.components.map((i: any) => {
+          if (i.containing_frame && !i.containing_frame.name) {
+            return { name: i.name, nodeId: i.node_id, ...i.containing_frame };
+          }
+
+          if (i.containing_frame) return i.containing_frame;
+        }),
+        "nodeId"
+      );
+
+      let unSyncedComponents = _.differenceBy(
+        componentsFromFigma,
+        data.component,
+        "nodeId"
+      );
+
+      setParentComponents(
+        unSyncedComponents.map((component) => {
+          let filteredComponentsByNodeId = _.filter(
+            figmaComponentsAPI.meta?.components,
+            function (obj) {
+              return _.some(obj.containing_frame, { nodeId: component.nodeId });
+            }
+          );
+
+          let figmaURL = `https://www.figma.com/embed?embed_host=astra&url=https://www.figma.com/file/${data.figma_file_key}/${figmaFileAPI.name}?node-id=${component.nodeId}`;
+          return {
+            ...component,
+            figma_url: figmaURL.replace(/\s/g, "-"),
+            variants: filteredComponentsByNodeId.map((item) => {
+              return item.name;
+            }),
+          };
+        })
+      );
+      setLoading(false);
+    }
+  }, [figmaComponentsAPI, figmaFileAPI, data]);
+
+  useEffect(() => {
+    let filterSelectedComponents = _.keys(rowSelection).map((id) => {
+      return parentComponents[id];
+    });
+
+    setSelectedComponents(filterSelectedComponents);
+  }, [rowSelection, parentComponents]);
+
+  function numberOfVariants(id) {
+    let variants = _.filter(
+      figmaComponentsAPI.meta?.components,
+      function (obj) {
+        return _.some(obj.containing_frame, { nodeId: id });
+      }
+    );
+
+    return variants.length;
+  }
+
+  if (figmaComponentsAPIError || figmaFileAPIError) {
+    throw figmaComponentsAPIError || figmaFileAPIError;
+  }
+
+  // if (!figmaComponentsAPI && !figmaFileAPI) return <p>Loading...</p>;
+
+  const bulkCreateComponent = async () => {
+    setBulkImportLoading(true);
+    try {
+      selectedComponents.map(async (component) => {
+        const { error } = await supabaseClient.from("component").insert([
+          {
+            title: component.name,
+            nodeId: component.nodeId,
+            created_by: user?.id,
+            design_system: system,
+            figma_url: component.figma_url,
+            documentation: [
+              {
+                type: "title",
+                children: [{ text: component.name }],
+              },
+              {
+                type: "description",
+                children: [{ text: "" }],
+              },
+              {
+                type: "embed",
+                url:
+                  "https://www.figma.com/embed?embed_host=astra&url=" +
+                  component.figma_url,
+                children: [{ text: "" }],
+              },
+              {
+                type: "props",
+                children: [{ text: "" }],
+              },
+              {
+                type: "paragraph",
+                children: [{ text: "" }],
+              },
+            ],
+          },
+        ]);
+        if (error) throw error;
+      });
+
+      setTimeout(() => {
+        router.push(`/design-system/${system}`);
+        mutate(`/api/design-systems/${system}`);
+        setBulkImportLoading(false);
+      }, 1000);
+    } catch (error: any) {
+      console.log(error);
+    }
+  };
+
   return (
     <Page>
       <PageHeader>
@@ -80,9 +235,77 @@ const ImportFigmaComponents = ({ data, designSystem }: any) => {
             System.
           </PageDescription>
         </div>
-        <Button>Import</Button>
+        {selectedComponents.length > 0 && (
+          <Button
+            onClick={bulkCreateComponent}
+            css={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              minWidth: 44,
+              opacity: bulkImportLoading ? 0.5 : 1,
+            }}
+          >
+            {bulkImportLoading ? <Spinner /> : "Import"}
+          </Button>
+        )}
       </PageHeader>
-      <TabFigma data={data} />
+      <>
+        {figmaComponentsAPI?.status === 404 || figmaFileAPI?.status === 404 ? (
+          <EmptyState>
+            <div className="svg-container">
+              <WarningTriangleOutline />
+            </div>
+            <h3>Couldn&apos;t retrieve your figma file </h3>
+            <p>
+              Check to make sure you entered the correct
+              <EditDesignSystemDialog>
+                <span>file key</span>
+              </EditDesignSystemDialog>
+            </p>
+          </EmptyState>
+        ) : loading ? (
+          <>
+            <EmptyState
+              css={{
+                alignItems: "center",
+                justifyContent: "center",
+                flexDirection: "row",
+                gap: 12,
+              }}
+            >
+              <Spinner color="black" />{" "}
+              <span>Fetching components from figma...</span>
+            </EmptyState>
+          </>
+        ) : (
+          <>
+            {parentComponents.length ? (
+              <ImportContainer>
+                <ImportTable
+                  parentComponents={parentComponents}
+                  numberOfVariants={numberOfVariants}
+                  rowSelection={rowSelection}
+                  setRowSelection={setRowSelection}
+                />
+              </ImportContainer>
+            ) : (
+              <EmptyState>
+                <div className="svg-container">
+                  <Figma />
+                </div>
+                <h3>0 published components in your figma file</h3>
+                <p>
+                  Try creating a new component and publishing it within your
+                  figma file. Figma only allows published components to be
+                  imported.
+                </p>
+              </EmptyState>
+            )}
+          </>
+        )}
+        {}
+      </>
     </Page>
   );
 };
@@ -145,199 +368,6 @@ const EmptyState = styled("div", {
     },
   },
 });
-
-const TabFigma = ({ data }) => {
-  const supabaseClient = useSupabaseClient();
-  const user = useUser();
-  const router = useRouter();
-  const { system } = router.query;
-
-  // States NEW
-  const [parentComponents, setParentComponents] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  // Table Data
-  const [rowSelection, setRowSelection] = useState({});
-  const [selectedComponents, setSelectedComponents] = useState([]);
-
-  const { data: figmaToken } = useProfileStore();
-
-  const { data: figmaComponentsAPI, error: figmaComponentsAPIError } =
-    useSWRImmutable([
-      "https://api.figma.com/v1/files/" + data.figma_file_key + "/components",
-      {
-        method: "GET",
-        headers: {
-          "X-Figma-Token": figmaToken?.figma_token,
-        },
-      },
-    ]);
-
-  const { data: figmaFileAPI, error: figmaFileAPIError } = useSWRImmutable([
-    "https://api.figma.com/v1/files/" + data.figma_file_key,
-    {
-      method: "GET",
-      headers: {
-        "X-Figma-Token": figmaToken?.figma_token,
-      },
-    },
-  ]);
-
-  useEffect(() => {
-    if (figmaComponentsAPI && figmaFileAPI) {
-      let componentsFromFigma: any[] = _.uniqBy(
-        figmaComponentsAPI.meta?.components.map((i) => i.containing_frame),
-        "nodeId"
-      );
-
-      let unSyncedComponents = _.differenceBy(
-        componentsFromFigma,
-        data.component,
-        "nodeId"
-      );
-
-      setParentComponents(
-        unSyncedComponents.map((component) => {
-          let filteredComponentsByNodeId = _.filter(
-            figmaComponentsAPI.meta?.components,
-            function (obj) {
-              return _.some(obj.containing_frame, { nodeId: component.nodeId });
-            }
-          );
-
-          let figmaURL = `https://www.figma.com/embed?embed_host=astra&url=https://www.figma.com/file/${data.figma_file_key}/${figmaFileAPI.name}?node-id=${component.nodeId}`;
-          return {
-            ...component,
-            figma_url: figmaURL.replace(/\s/g, "-"),
-            variants: filteredComponentsByNodeId.map((item) => {
-              return item.name;
-            }),
-          };
-        })
-      );
-      setLoading(false);
-    }
-  }, [figmaComponentsAPI, figmaFileAPI, data]);
-
-  useEffect(() => {
-    let filterSelectedComponents = _.keys(rowSelection).map((id) => {
-      return parentComponents[id];
-    });
-
-    setSelectedComponents(filterSelectedComponents);
-  }, [rowSelection, parentComponents]);
-
-  function numberOfVariants(id) {
-    let variants = _.filter(
-      figmaComponentsAPI.meta?.components,
-      function (obj) {
-        return _.some(obj.containing_frame, { nodeId: id });
-      }
-    );
-
-    return variants.length;
-  }
-
-  if (figmaComponentsAPIError || figmaFileAPIError) {
-    throw figmaComponentsAPIError || figmaFileAPIError;
-  }
-
-  // if (!figmaComponentsAPI && !figmaFileAPI) return <p>Loading...</p>;
-
-  const bulkCreateComponent = async () => {
-    try {
-      selectedComponents.map(async (component) => {
-        const { error } = await supabaseClient.from("component").insert([
-          {
-            title: component.name,
-            nodeId: component.nodeId,
-            created_by: user?.id,
-            design_system: system,
-            figma_url: component.figma_url,
-            documentation: [
-              {
-                type: "title",
-                children: [{ text: component.name }],
-              },
-              {
-                type: "paragraph",
-                children: [{ text: "" }],
-              },
-            ],
-          },
-        ]);
-        if (error) throw error;
-      });
-    } catch (error: any) {
-      console.log(error);
-    }
-  };
-
-  return (
-    <>
-      {figmaComponentsAPI?.status === 404 || figmaFileAPI?.status === 404 ? (
-        <EmptyState>
-          <div className="svg-container">
-            <WarningTriangleOutline />
-          </div>
-          <h3>Couldn&apos;t retrieve your figma file </h3>
-          <p>
-            Check to make sure you entered the correct
-            <EditDesignSystemDialog>
-              <span>file key</span>
-            </EditDesignSystemDialog>
-          </p>
-        </EmptyState>
-      ) : loading ? (
-        <>
-          <EmptyState
-            css={{
-              alignItems: "center",
-              justifyContent: "center",
-              flexDirection: "row",
-              gap: 12,
-            }}
-          >
-            <Spinner color="black" />{" "}
-            <span>Fetching components from figma...</span>
-          </EmptyState>
-        </>
-      ) : (
-        <>
-          {parentComponents.length ? (
-            <ImportContainer>
-              <Flex>
-                <>
-                  <ImportTable
-                    parentComponents={parentComponents}
-                    numberOfVariants={numberOfVariants}
-                    rowSelection={rowSelection}
-                    setRowSelection={setRowSelection}
-                  />
-                  <Button onClick={bulkCreateComponent}>
-                    Import components
-                  </Button>
-                </>
-              </Flex>
-            </ImportContainer>
-          ) : (
-            <EmptyState>
-              <div className="svg-container">
-                <Figma />
-              </div>
-              <h3>0 published components in your figma file</h3>
-              <p>
-                Try creating a new component and publishing it within your figma
-                file. Figma only allows published components to be imported.
-              </p>
-            </EmptyState>
-          )}
-        </>
-      )}
-      {}
-    </>
-  );
-};
 
 const ImportContainer = styled("div", {
   display: "flex",

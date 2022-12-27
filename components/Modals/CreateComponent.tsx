@@ -38,7 +38,7 @@ const CreateComponent = ({ children }: any) => {
         .from("component")
         .insert([
           {
-            title: componentData.title,
+            title: componentData.title || "Untitled",
             description: componentData.description,
             figma_url:
               "https://www.figma.com/embed?embed_host=astra&url=" +

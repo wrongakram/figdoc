@@ -128,44 +128,6 @@ const Cover = styled("div", {
   ],
 });
 
-const SystemAvatar = styled("div", {
-  position: "absolute",
-  left: "16px",
-  top: "28px",
-  width: 40,
-  height: 40,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  borderRadius: 8,
-  color: "$gray11",
-  backgroundColor: "$gray3",
-
-  variants: {
-    color: {
-      violet: {},
-      green: {},
-    },
-  },
-
-  compoundVariants: [
-    {
-      color: "violet",
-      css: {
-        color: "$violet11",
-        backgroundColor: "$violet3",
-      },
-    },
-    {
-      color: "green",
-      css: {
-        color: "$green11",
-        backgroundColor: "$green3",
-      },
-    },
-  ],
-});
-
 type DesignSystem = {
   id: string;
   created_at: string;
@@ -213,8 +175,6 @@ export const FDComponentCard = ({
 };
 
 const ComponentCoverImage = ({ fileKey, nodeId }: any) => {
-  const router = useRouter();
-
   const { data: figmaToken }: any = useProfileStore();
 
   // States
@@ -233,7 +193,12 @@ const ComponentCoverImage = ({ fileKey, nodeId }: any) => {
   useEffect(() => {
     if (data) {
       let matchingComponents = _.filter(data.meta?.components, function (obj) {
-        return _.some(obj.containing_frame, { nodeId: nodeId });
+        if (obj.containing_frame && !obj.containing_frame.name) {
+          obj.containing_frame.name = obj.name;
+          obj.containing_frame.nodeId = obj.node_id;
+        }
+
+        return obj.containing_frame?.nodeId === nodeId;
       });
 
       setAllComponentThumbnails(matchingComponents[0]?.thumbnail_url);
@@ -264,14 +229,14 @@ const ComponentCoverImage = ({ fileKey, nodeId }: any) => {
             // loader={myLoader}
             src={allComponentThumbnails}
             alt="Picture of the author"
-            layout="fill"
-            objectFit="contain"
+            fill
+            style={{ objectFit: "contain" }}
             quality={100}
           />
         ) : (
-          <ComponentVisual>
-            <Puzzle />
-          </ComponentVisual>
+          <>
+            <p>No preview</p>
+          </>
         )}
       </div>
     </div>
@@ -330,7 +295,7 @@ const DesignSystemCardDropdown = ({ children, id }: any) => {
         .delete()
         .eq("id", id);
 
-      mutate(`api/design-systems/${system}`);
+      mutate(`/api/design-systems/${system}`);
       router.push(`/design-system/${system}`);
 
       if (error)

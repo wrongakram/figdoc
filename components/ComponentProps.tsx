@@ -18,6 +18,8 @@ import * as Tabs from "@radix-ui/react-tabs";
 import { EmptyState } from "./primitives/EmptyState";
 import Spinner from "./Spinner";
 import { useProfileStore } from "../context/ProfileContext";
+import { Flex } from "./primitives/structure";
+import { H4 } from "./primitives/Text";
 
 const ComponentFigmaProps = ({ designSystem }: any) => {
   const [variantData, setVariantData] = useState<any[]>([]);
@@ -91,84 +93,74 @@ const ComponentFigmaProps = ({ designSystem }: any) => {
   if (error) {
     return <p>Couldn&apos;t get component props from figma</p>;
   }
+
   if (!figmaData)
     return (
-      <EmptyState
-        css={{
-          position: "relative",
-          alignItems: "center",
-          justifyContent: "center",
-          flexDirection: "row",
-          gap: 12,
-        }}
-      >
+      <Flex alignItemsCenter style={{ justifyContent: "center" }}>
         <Spinner color="black" />
-
-        <span>
-          Fetching {designSystem.component[0].title} props from figma...
-        </span>
-
-        <span
-          style={{
-            position: "absolute",
-            display: "block",
-            fontSize: 12,
-            color: "#999",
-            margin: "0 auto",
-            marginTop: 60,
-          }}
-        >
-          The Figma file is quite large, so this might take a few seconds.
-        </span>
-      </EmptyState>
+      </Flex>
     );
 
   return (
-    <PropTable>
-      <PropTableHeader>
-        <PropTableHeaderCell>Property</PropTableHeaderCell>
-        <PropTableHeaderCell>Value</PropTableHeaderCell>
-        <PropTableHeaderCell>Type</PropTableHeaderCell>
-      </PropTableHeader>
-      <PropTableBody>
-        {variantData?.map((variant) => {
-          return (
-            // eslint-disable-next-line react/jsx-key
-            <PropTableRow>
-              <PropTableCell>{_.keys(variant)}</PropTableCell>
-              <PropTableCell>
-                {_.values(variant).map((value) => {
-                  let a = _.split(value, ",");
-                  return a.map((v, id) => <span key={id}>{v}</span>);
-                })}
-              </PropTableCell>
-              <PropTableCell>
-                {_.values(variant).map((value) => {
-                  let a = _.split(value, ",");
-                  return a.map((v, id) => (
-                    <>
-                      {v === "True" || v === "False" ? (
-                        <span className="type" key={id}>
-                          Boolean
-                        </span>
-                      ) : (
-                        <span className="type" key={id}>
-                          String
-                        </span>
-                      )}
-                    </>
-                  ));
-                })}
-              </PropTableCell>
-            </PropTableRow>
-          );
-        })}
-      </PropTableBody>
-    </PropTable>
+    <>
+      {variantData.length === 0 ? null : (
+        <>
+          <H4 css={{ marginBottom: 12 }}>Component Props</H4>
+          <PropTable>
+            <PropTableHeader>
+              <PropTableHeaderCell>Property</PropTableHeaderCell>
+              <PropTableHeaderCell>Value</PropTableHeaderCell>
+              <PropTableHeaderCell>Type</PropTableHeaderCell>
+            </PropTableHeader>
+            <PropTableBody>
+              {variantData?.map((variant) => {
+                return (
+                  // eslint-disable-next-line react/jsx-key
+                  <PropTableRow>
+                    <PropTableCell>{_.keys(variant)}</PropTableCell>
+                    <PropTableCell>
+                      {_.values(variant).map((value) => {
+                        let a = _.split(value, ",");
+                        return a.map((v, id) => <span key={id}>{v}</span>);
+                      })}
+                    </PropTableCell>
+                    <PropTableCell>
+                      {_.values(variant).map((value) => {
+                        let a = _.split(value, ",");
+                        return a.map((v, id) => (
+                          <>
+                            {v === "True" || v === "False" ? (
+                              <span className="type" key={id}>
+                                Boolean
+                              </span>
+                            ) : (
+                              <span className="type" key={id}>
+                                String
+                              </span>
+                            )}
+                          </>
+                        ));
+                      })}
+                    </PropTableCell>
+                  </PropTableRow>
+                );
+              })}
+            </PropTableBody>
+          </PropTable>
+          <Divider />
+        </>
+      )}
+    </>
   );
 };
 
 export default ComponentFigmaProps;
+
+const Divider = styled("div", {
+  height: 1,
+  backgroundColor: "$gray3",
+  margin: "32px 0",
+});
 
 const PropTable = styled("div", {
   fontFamily: "SF Mono, Menlo, monospace",

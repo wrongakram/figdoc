@@ -125,7 +125,7 @@ export default function ImportTable({
 
 const FDTable = styled("table", {
   borderSpacing: 0,
-  width: 720,
+  width: "100%",
   padding: 0,
   borderRadius: 8,
 });

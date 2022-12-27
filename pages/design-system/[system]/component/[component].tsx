@@ -30,7 +30,6 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { EditorPlayground } from "../../../../components/editor/EditorPlayground";
 
 import dynamic from "next/dynamic";
-import ComponentFigmaProps from "../../../../components/ComponentProps";
 import Layout from "../../../../components/Layout";
 import FigmaComponentPreview from "../../../../components/editor/FigmaComponentPreview";
 const ComponentEditor = dynamic(
@@ -71,7 +70,6 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
       initialSession: session,
       user: session.user,
       data: data,
-      componentDocumentation: data?.component[0]?.documentation,
     },
   };
 };
@@ -93,7 +91,7 @@ const ContainerChild = styled("div", {
   margin: "0 auto",
 });
 
-const ComponentPage = ({ data, componentDocumentation }: any) => {
+const ComponentPage = ({ data }: any) => {
   const router = useRouter();
   const { component } = router.query;
   const supabaseClient = useSupabaseClient();
@@ -117,14 +115,12 @@ const ComponentPage = ({ data, componentDocumentation }: any) => {
         setShowFigmaProps={setShowFigmaProps}
       />
       <Container css={{ padding: "0 24px" }}>
-        <ContainerChild key={data.component[0].id} css={{ gap: 16 }}>
+        <ContainerChild key={data.component[0]?.id} css={{ gap: 16 }}>
           <ComponentEditor
             data={data}
-            componentDocumentation={componentDocumentation}
             component={component}
             readOnly={readOnly}
           />
-          {/* {showFigmaProps && <ComponentFigmaProps designSystem={data} />} */}
         </ContainerChild>
       </Container>
     </Page>
@@ -132,49 +128,6 @@ const ComponentPage = ({ data, componentDocumentation }: any) => {
 };
 
 export default ComponentPage;
-
-// FIGMA COMPONENT PROPS
-
-const TabsRoot = styled(Tabs.Root, {
-  display: "flex",
-  flexDirection: "column",
-});
-
-const TabsList = styled(Tabs.List, {
-  flexShrink: 0,
-  display: "flex",
-});
-
-const TabsTrigger = styled(Tabs.Trigger, {
-  all: "unset",
-  fontFamily: "inherit",
-  padding: "0 20px",
-  height: 48,
-  display: "flex",
-  alignItems: "center",
-  fontSize: 14,
-  lineHeight: 1,
-  color: "$gray11",
-  userSelect: "none",
-  cursor: "pointer",
-  borderRadius: "6px",
-  "&:hover": { background: "$gray3" },
-  '&[data-state="active"]': {
-    color: "$gray12",
-    background: "$gray4",
-  },
-  "&:focus": { position: "relative", boxShadow: `0 0 0 2px black` },
-});
-
-const TabsContent = styled(Tabs.Content, {
-  flexGrow: 1,
-  padding: 20,
-  backgroundColor: "white",
-  borderBottomLeftRadius: 6,
-  borderBottomRightRadius: 6,
-  outline: "none",
-  "&:focus": { boxShadow: `0 0 0 2px black` },
-});
 
 // EDITOR COMPONENT
 

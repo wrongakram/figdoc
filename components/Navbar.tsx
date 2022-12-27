@@ -75,7 +75,7 @@ const Navbar = ({
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem active href="/">
-          {data.component[0].title}
+          {data.component[0].title || "Untitled"}
         </BreadcrumbItem>
       </Breadcrumb>
 
