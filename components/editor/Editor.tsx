@@ -181,7 +181,7 @@ const withLayout = (editor) => {
   return editor;
 };
 
-const ComponentEditor = ({ data, readOnly }: any) => {
+const ComponentEditor = ({ data }: any) => {
   const router = useRouter();
   const { system, component: componentId } = router.query;
   const supabase = useSupabaseClient();
@@ -290,7 +290,6 @@ const ComponentEditor = ({ data, readOnly }: any) => {
                 </div>
               )}
               spellCheck
-              readOnly={readOnly}
               onKeyDown={(event) => {
                 for (const hotkey in HOTKEYS) {
                   if (isHotkey(hotkey, event as any)) {

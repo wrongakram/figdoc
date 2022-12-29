@@ -6,7 +6,7 @@ import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { violet, mauve, blackA, red } from "@radix-ui/colors";
+import { violet, mauve, red } from "@radix-ui/colors";
 
 import { useRouter } from "next/router";
 import Link from "next/link";
@@ -470,10 +470,8 @@ const FDDropDown = ({ id, ds, system, children }: any) => {
 
           <DropdownMenuSeparator />
           <DropdownDescription>
-            <small>Created by: {JSON.stringify(ds?.created_by, null, 2)}</small>
-            <small>
-              Created at: {JSON.stringify(ds?.created_at, null, 2)}
-            </small>{" "}
+            <small>Created by: {ds?.created_by}</small>
+            <small>Created at: {ds?.created_at}</small>{" "}
           </DropdownDescription>
           <DropdownMenuSeparator />
           <DropdownMenuItemDestructive onClick={deleteDesignSystem}>

@@ -126,6 +126,8 @@ export const DropdownMenuItemStale = styled("div", itemStyles, {
   },
 });
 
+export const DropdownMenuItemButton = styled("button", itemStyles, {});
+
 export const DropdownMenuLabel = styled(DropdownMenuPrimitive.Label, {
   paddingLeft: 25,
   fontSize: 12,

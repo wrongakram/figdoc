@@ -60,13 +60,7 @@ const ComponentDropdown = ({ children, showFigmaProps, setShowFigmaProps }) => {
   );
 };
 
-const Navbar = ({
-  data,
-  readOnly,
-  setReadOnly,
-  setShowFigmaProps,
-  showFigmaProps,
-}: any) => {
+const Navbar = ({ data, setShowFigmaProps, showFigmaProps }: any) => {
   return (
     <NavContainer>
       <Breadcrumb>
@@ -80,21 +74,6 @@ const Navbar = ({
       </Breadcrumb>
 
       <NavActions>
-        <Button
-          apperance={"ghost"}
-          size={"small"}
-          onClick={() => setReadOnly((prev) => !prev)}
-        >
-          {readOnly ? (
-            <>
-              <Lock width={18} /> Locked
-            </>
-          ) : (
-            <>
-              <NoLock width={18} /> Unlocked
-            </>
-          )}
-        </Button>
         <ComponentDropdown
           showFigmaProps={showFigmaProps}
           setShowFigmaProps={setShowFigmaProps}

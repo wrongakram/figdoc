@@ -19,7 +19,7 @@ import _ from "lodash";
 import Navbar from "../../../../components/Navbar";
 
 // Components
-import * as Tabs from "@radix-ui/react-tabs";
+import * as ScrollArea from "@radix-ui/react-scroll-area";
 
 // import Loader from "../../../../components/app/Loader";
 import Leaf from "../../../../components/editor/Leaf";
@@ -99,7 +99,6 @@ const ComponentPage = ({ data }: any) => {
   const [currentMark, setCurrentMark] = useState(null);
   const [publishing, setPublishing] = useState(false);
   const [disabled, setDisabled] = useState(true);
-  const [readOnly, setReadOnly] = useState(false);
   const [showFigmaProps, setShowFigmaProps] = useState(true);
 
   const renderElement = useCallback((props) => <Element {...props} />, []);
@@ -109,20 +108,27 @@ const ComponentPage = ({ data }: any) => {
     <Page css={{ padding: 0 }}>
       <Navbar
         data={data}
-        readOnly={readOnly}
-        setReadOnly={setReadOnly}
         showFigmaProps={showFigmaProps}
         setShowFigmaProps={setShowFigmaProps}
       />
-      <Container css={{ padding: "0 24px" }}>
-        <ContainerChild key={data.component[0]?.id} css={{ gap: 16 }}>
-          <ComponentEditor
-            data={data}
-            component={component}
-            readOnly={readOnly}
-          />
-        </ContainerChild>
-      </Container>
+      <ScrollAreaRoot>
+        <ScrollAreaViewport>
+          <SidebarSection>
+            <Container css={{ padding: "0 24px" }}>
+              <ContainerChild key={data.component[0]?.id} css={{ gap: 16 }}>
+                <ComponentEditor data={data} component={component} />
+              </ContainerChild>
+            </Container>
+          </SidebarSection>
+        </ScrollAreaViewport>
+        <ScrollAreaScrollbar orientation="vertical">
+          <ScrollAreaThumb />
+        </ScrollAreaScrollbar>
+        <ScrollAreaScrollbar orientation="horizontal">
+          <ScrollAreaThumb />
+        </ScrollAreaScrollbar>
+        <ScrollAreaCorner />
+      </ScrollAreaRoot>
     </Page>
   );
 };
@@ -136,3 +142,56 @@ export default ComponentPage;
 ComponentPage.getLayout = function getLayout(page: ReactElement) {
   return <Layout>{page}</Layout>;
 };
+
+const ScrollAreaRoot = styled(ScrollArea.Root, {
+  height: "calc(100% )",
+  overflow: "hidden",
+});
+
+const ScrollAreaViewport = styled(ScrollArea.Viewport, {
+  width: "100%",
+  height: "100%",
+  borderRadius: "inherit",
+});
+
+const ScrollAreaScrollbar = styled(ScrollArea.Scrollbar, {
+  display: "flex",
+  // ensures no selection
+  userSelect: "none",
+  // disable browser handling of all panning and zooming gestures on touch devices
+  touchAction: "none",
+  padding: 2,
+  transition: "background 160ms ease-out",
+  '&[data-orientation="vertical"]': { width: 10 },
+  '&[data-orientation="horizontal"]': {
+    flexDirection: "column",
+    height: 10,
+  },
+});
+
+const ScrollAreaThumb = styled(ScrollArea.Thumb, {
+  flex: 1,
+  background: "$gray8",
+  borderRadius: 10,
+  // increase target size for touch devices https://www.w3.org/WAI/WCAG21/Understanding/target-size.html
+  position: "relative",
+  "&::before": {
+    content: '""',
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: "100%",
+    height: "100%",
+    minWidth: 44,
+    minHeight: 44,
+  },
+});
+
+const ScrollAreaCorner = styled(ScrollArea.Corner, {
+  background: "blue",
+});
+
+const SidebarSection = styled("div", {
+  height: "auto",
+});

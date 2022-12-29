@@ -5,6 +5,7 @@ import {
   MoreHorizCircledOutline,
   MoreHoriz,
   ProfileCircled,
+  OpenNewWindow,
 } from "iconoir-react";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -20,8 +21,13 @@ import {
   DropdownMenuItem,
   DropdownMenuGroup,
   DropdownMenuSeparator,
+  DropdownMenuItemStale,
+  RightSlot,
+  DropdownMenuItemButton,
 } from "./DropdownMenu";
 import FDSystemIcon from "./FDSystemIcon";
+import DeleteConfirmation from "./Modals/DeleteConfirmation";
+import EditDesignSystemDialog from "./Modals/EditDesignSystem";
 
 const Card = styled(Link, {
   borderRadius: "6px",
@@ -125,32 +131,40 @@ type DesignSystem = {
 
 export const FDDesignSystemCards = ({ system }: { system: DesignSystem }) => {
   return (
-    <Card href={`/design-system/${system.id}`}>
-      <Cover color={system.theme} />
-      <div style={{ position: "absolute", left: "16px", top: "28px" }}>
-        <FDSystemIcon theme={system.theme} />
-      </div>
-      <div className="content">
-        <div className="title">{system.title}</div>
-        <div className="description">{system.description}</div>
-      </div>
-      <div className="tags-container">
-        {system.members.length > 1 ? (
-          <div className="tag">
-            <Label color={system.theme}>{system.members.length}</Label> Members
-          </div>
-        ) : (
-          <div className="tag">
-            <Lock width={14} /> Private
-          </div>
-        )}
-      </div>
-      <DesignSystemCardDropdown id={system.id} owner={system.created_by}>
-        <IconButton>
-          <MoreHoriz width={18} />
-        </IconButton>
-      </DesignSystemCardDropdown>
-    </Card>
+    <>
+      <Card href={`/design-system/${system.id}`}>
+        <Cover color={system.theme} />
+        <div style={{ position: "absolute", left: "16px", top: "28px" }}>
+          <FDSystemIcon theme={system.theme} />
+        </div>
+        <div className="content">
+          <div className="title">{system.title}</div>
+          <div className="description">{system.description}</div>
+        </div>
+        <div className="tags-container">
+          {system.members.length > 1 ? (
+            <div className="tag">
+              <Label color={system.theme}>{system.members.length}</Label>{" "}
+              Members
+            </div>
+          ) : (
+            <div className="tag">
+              <Lock width={14} /> Private
+            </div>
+          )}
+        </div>
+        <DesignSystemCardDropdown
+          id={system.id}
+          owner={system.created_by}
+          title={system.title}
+          figmaFileKey={system.figma_file_key}
+        >
+          <IconButton>
+            <MoreHoriz width={18} />
+          </IconButton>
+        </DesignSystemCardDropdown>
+      </Card>
+    </>
   );
 };
 
@@ -170,9 +184,14 @@ const IconButton = styled("button", {
   "&:focus": { boxShadow: `0 0 0 2px black` },
 });
 
-const DesignSystemCardDropdown = ({ children, id, owner }: any) => {
+const DesignSystemCardDropdown = ({
+  children,
+  id,
+  owner,
+  figmaFileKey,
+  title,
+}: any) => {
   const user = useUser();
-  const [admin, setAdmin] = useState();
 
   const router = useRouter();
   const supabaseClient = useSupabaseClient();
@@ -218,33 +237,54 @@ const DesignSystemCardDropdown = ({ children, id, owner }: any) => {
     }
   };
 
-  useEffect(() => {
-    if (owner == user?.id) {
-      setAdmin(true);
-    }
-  }, [owner, user]);
+  const goToFigmaFile = (e: React.MouseEvent, figmaFileKey: string) => {
+    e.preventDefault();
+    window.location = `https://www.figma.com/file/${figmaFileKey}/`;
+  };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
       <DropdownMenuContent size="md" collisionPadding={{ right: 24 }}>
-        {admin && <DropdownMenuItem>Edit</DropdownMenuItem>}
+        {/* {owner == user?.id && (
+          <EditDesignSystemDialog>
+            <DropdownMenuItemStale>
+              Edit<RightSlot>⌘+E</RightSlot>
+            </DropdownMenuItemStale>
+          </EditDesignSystemDialog>
+        )} */}
 
-        <DropdownMenuItem>Go to Figma</DropdownMenuItem>
-        {admin && (
+        <DropdownMenuItem onClick={(e) => goToFigmaFile(e, figmaFileKey)}>
+          Go to Figma
+        </DropdownMenuItem>
+
+        <DropdownMenuGroup>
+          {owner == user?.id && (
+            <>
+              <DropdownMenuSeparator></DropdownMenuSeparator>
+              <DropdownMenuItem onClick={(e) => e.preventDefault()} destructive>
+                <DeleteConfirmation
+                  title={`Delete ${title}?`}
+                  titleHighlight={title}
+                  description={`This will delete the ${title} Design System and all of its components. This action cannot be undone.`}
+                  delFunc={DELETE_DESIGN_SYSTEM}
+                  primaryButtonText="Delete"
+                />
+              </DropdownMenuItem>
+            </>
+          )}
+        </DropdownMenuGroup>
+        {owner != user?.id && (
           <>
             <DropdownMenuSeparator></DropdownMenuSeparator>
-            <DropdownMenuItem onClick={DELETE_DESIGN_SYSTEM} destructive>
-              Delete
-            </DropdownMenuItem>
-          </>
-        )}
-
-        {!admin && (
-          <>
-            <DropdownMenuSeparator></DropdownMenuSeparator>
-            <DropdownMenuItem onClick={LEAVE_DESIGN_SYSTEM} destructive>
-              Leave
+            <DropdownMenuItem onClick={(e) => e.preventDefault()} destructive>
+              <DeleteConfirmation
+                title={`Leave ${title}?`}
+                titleHighlight={title}
+                description={`This will remove you from the ${title} Design System. You will no longer be able to access it.`}
+                delFunc={LEAVE_DESIGN_SYSTEM}
+                primaryButtonText="Leave"
+              />
             </DropdownMenuItem>
           </>
         )}

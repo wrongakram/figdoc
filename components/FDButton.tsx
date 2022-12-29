@@ -62,6 +62,13 @@ export const Button = styled("button", {
           outline: "2px solid $violet9",
         },
       },
+      destructive: {
+        background: "$red11",
+        color: "$gray1",
+        "&:hover": {
+          background: "$red10",
+        },
+      },
     },
   },
 });
