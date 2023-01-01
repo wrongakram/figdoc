@@ -17,8 +17,9 @@ import { useRouter } from "next/router";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { mutate } from "swr";
 import { Button } from "./FDButton";
+import _ from "lodash";
 
-const ComponentDropdown = ({ children, showFigmaProps, setShowFigmaProps }) => {
+const ComponentDropdown = ({ children, data }) => {
   const router = useRouter();
   const supabaseClient = useSupabaseClient();
   const { system, component } = router.query;
@@ -42,15 +43,29 @@ const ComponentDropdown = ({ children, showFigmaProps, setShowFigmaProps }) => {
       console.log(error);
     }
   };
+
+  const goToFigmaFile = (e: React.MouseEvent, figmaDetails: string) => {
+    e.preventDefault();
+    window.location = `https://www.figma.com/file/${figmaDetails}`;
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
       <DropdownMenuContent size="lg" collisionPadding={{ right: 24 }}>
-        <DropdownMenuItem>Go to Figma</DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setShowFigmaProps((prev) => !prev)}>
-          {showFigmaProps ? "Hide" : "Show"} Figma Props
+        <DropdownMenuItem
+          onClick={(e) =>
+            goToFigmaFile(
+              e,
+              _.trim(
+                data.component[0].figma_url,
+                "https://www.figma.com/embed?embed_host=astra&url="
+              )
+            )
+          }
+        >
+          Go to Figma
         </DropdownMenuItem>
-
         <DropdownMenuSeparator></DropdownMenuSeparator>
         <DropdownMenuItem onClick={DELETE_COMPONENT} destructive>
           Delete
@@ -74,10 +89,7 @@ const Navbar = ({ data, setShowFigmaProps, showFigmaProps }: any) => {
       </Breadcrumb>
 
       <NavActions>
-        <ComponentDropdown
-          showFigmaProps={showFigmaProps}
-          setShowFigmaProps={setShowFigmaProps}
-        >
+        <ComponentDropdown data={data}>
           <IconButton>
             <MoreHorizCircledOutline width={18} />
           </IconButton>

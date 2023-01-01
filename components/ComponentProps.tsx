@@ -105,7 +105,9 @@ const ComponentFigmaProps = ({ designSystem }: any) => {
     <>
       {variantData.length === 0 ? null : (
         <>
-          <H4 css={{ marginBottom: 12 }}>Component Props</H4>
+          <H4 css={{ marginBottom: 12, fontWeight: 500, fontSize: 18 }}>
+            Component Props
+          </H4>
           <PropTable>
             <PropTableHeader>
               <PropTableHeaderCell>Property</PropTableHeaderCell>

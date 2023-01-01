@@ -76,7 +76,7 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
 export const Page = styled("div", {
   padding: "24px",
-  height: "calc(100vh - 88px)",
+  height: "calc(100vh - 64px)",
 });
 
 const Container = styled("div", {
@@ -96,25 +96,13 @@ const ComponentPage = ({ data }: any) => {
   const { component } = router.query;
   const supabaseClient = useSupabaseClient();
 
-  const [currentMark, setCurrentMark] = useState(null);
-  const [publishing, setPublishing] = useState(false);
-  const [disabled, setDisabled] = useState(true);
-  const [showFigmaProps, setShowFigmaProps] = useState(true);
-
-  const renderElement = useCallback((props) => <Element {...props} />, []);
-  const renderLeaf = useCallback((props) => <Leaf {...props} />, []);
-
   return (
     <Page css={{ padding: 0 }}>
-      <Navbar
-        data={data}
-        showFigmaProps={showFigmaProps}
-        setShowFigmaProps={setShowFigmaProps}
-      />
+      <Navbar data={data} />
       <ScrollAreaRoot>
         <ScrollAreaViewport>
           <SidebarSection>
-            <Container css={{ padding: "0 24px" }}>
+            <Container css={{ padding: "48px 24px 0 24px" }}>
               <ContainerChild key={data.component[0]?.id} css={{ gap: 16 }}>
                 <ComponentEditor data={data} component={component} />
               </ContainerChild>
@@ -144,7 +132,7 @@ ComponentPage.getLayout = function getLayout(page: ReactElement) {
 };
 
 const ScrollAreaRoot = styled(ScrollArea.Root, {
-  height: "calc(100% )",
+  height: "calc(100%)",
   overflow: "hidden",
 });
 

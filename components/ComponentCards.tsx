@@ -165,7 +165,7 @@ export const FDComponentCard = ({
         </div>
         <div className="description">{component.description}</div>
       </div>
-      <DesignSystemCardDropdown id={component?.id}>
+      <DesignSystemCardDropdown id={component?.id} component={component}>
         <IconButton>
           <MoreHoriz width={18} />
         </IconButton>
@@ -280,7 +280,7 @@ const IconButton = styled("button", {
   "&:focus": { boxShadow: `0 0 0 2px black` },
 });
 
-const DesignSystemCardDropdown = ({ children, id }: any) => {
+const DesignSystemCardDropdown = ({ children, id, component }: any) => {
   const user = useUser();
   const router = useRouter();
   const { system } = router.query;
@@ -307,11 +307,28 @@ const DesignSystemCardDropdown = ({ children, id }: any) => {
     }
   };
 
+  const goToFigmaFile = (e: React.MouseEvent, figmaDetails: string) => {
+    e.preventDefault();
+    window.location = `https://www.figma.com/file/${figmaDetails}`;
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
       <DropdownMenuContent size="md" collisionPadding={{ right: 24 }}>
-        <DropdownMenuItem>Go to Figma</DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={(e) =>
+            goToFigmaFile(
+              e,
+              _.trim(
+                component.figma_url,
+                "https://www.figma.com/embed?embed_host=astra&url="
+              )
+            )
+          }
+        >
+          Go to Figma
+        </DropdownMenuItem>
         <>
           <DropdownMenuSeparator></DropdownMenuSeparator>
           <DropdownMenuItem onClick={deleteComponent} destructive>

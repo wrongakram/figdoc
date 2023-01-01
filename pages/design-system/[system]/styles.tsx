@@ -113,7 +113,7 @@ const Styles = ({ data }: DesignSystemData) => {
 
   if (error) return <div>failed to load</div>;
 
-  if (!styles) return <div>loading...</div>;
+  if (!styles) return <div></div>;
 
   return (
     <Page>

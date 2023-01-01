@@ -22,7 +22,7 @@ const DeleteConfirmation = ({
         <AlertDialogTitle>{title}</AlertDialogTitle>
         <AlertDialogDescription>{description}</AlertDialogDescription>
         <Flex css={{ justifyContent: "center", gap: 8 }}>
-          <AlertDialog.Cancel asChild>
+          <AlertDialog.Cancel asChild autoFocus={false}>
             <Button apperance={"ghost"}>Cancel</Button>
           </AlertDialog.Cancel>
           <AlertDialog.Action asChild>

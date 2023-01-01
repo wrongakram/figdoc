@@ -1,5 +1,6 @@
-import { useContext, useEffect, useState } from "react";
-
+import type { ReactElement } from "react";
+import { useState, useEffect } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
 import { useRouter } from "next/router";
 
 import { useUser, useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -11,35 +12,17 @@ import React from "react";
 import { violet, mauve, blackA, green } from "@radix-ui/colors";
 import { gray } from "@radix-ui/colors/types/dark/gray";
 import { Cancel, Check } from "iconoir-react";
-
-// SWR
+import * as RadioGroup from "@radix-ui/react-radio-group";
 import { useSWRConfig } from "swr";
 
-// Context
-import ToastContext from "../../context/ToastContext";
-
-// Radix
-import * as RadioGroup from "@radix-ui/react-radio-group";
-import * as Dialog from "@radix-ui/react-dialog";
-
-// Components
-import {
-  Input,
-  Textarea,
-  Label,
-  Fieldset,
-  Required,
-} from "../primitives/forms";
-
-import Spinner from "../Spinner";
-import FigmaPopoverGuide from "../FigmaPopoverGuide";
-import { Button } from "../FDButton";
-import FDSystemIcon from "../FDSystemIcon";
+import { Input, Textarea, Label, Fieldset } from "../primitives/forms";
 
 const EditDesignSystemDialog = ({ children }: any) => {
   const supabaseClient = useSupabaseClient();
+  const user = useUser();
   const router = useRouter();
   const { mutate } = useSWRConfig();
+
   const { system } = router.query;
 
   const initialState = {
@@ -50,8 +33,6 @@ const EditDesignSystemDialog = ({ children }: any) => {
   };
 
   const [designSystemData, setDesignSystemData] = useState(initialState);
-  const [loading, setLoading] = useState(false);
-  const [open, setOpen] = React.useState(false);
 
   const handleChange = (e: any) => {
     setDesignSystemData({ ...designSystemData, [e.target.id]: e.target.value });
@@ -102,143 +83,117 @@ const EditDesignSystemDialog = ({ children }: any) => {
   };
 
   return (
-    <Dialog.Root open={open} onOpenChange={setOpen}>
+    <Dialog.Root>
       <Dialog.Trigger asChild>{children}</Dialog.Trigger>
       <Dialog.Portal>
         <DialogOverlay className="DialogOverlay" />
         <DialogContent className="DialogContent">
-          <DialogTitle className="DialogTitle">New Design System</DialogTitle>
+          <DialogTitle className="DialogTitle">Edit Design System</DialogTitle>
           <div className="inner">
-            <IconPreview>
-              <FDSystemIcon theme={designSystemData.theme} size="large" />
-            </IconPreview>
-            <form onSubmit={updateDesignSystem}>
-              <Fieldset className="Fieldset">
-                <RadioGroupRoot
-                  onValueChange={(value: string) =>
-                    setDesignSystemData({
-                      ...designSystemData,
-                      theme: value,
-                    })
-                  }
-                  defaultValue={designSystemData.theme}
-                  aria-label="Theme Color"
-                >
-                  <RadioGroupItem value="gray" theme="gray" id="r1">
-                    <RadioGroupIndicator>
-                      <Check color={"white"} width={18} strokeWidth={3} />
-                    </RadioGroupIndicator>
-                  </RadioGroupItem>
-
-                  <RadioGroupItem value="violet" theme="violet" id="r2">
-                    <RadioGroupIndicator>
-                      <Check color={"white"} width={16} strokeWidth={3} />
-                    </RadioGroupIndicator>
-                  </RadioGroupItem>
-
-                  <RadioGroupItem value="green" theme="green" id="r3">
-                    <RadioGroupIndicator>
-                      <Check color={"white"} width={16} strokeWidth={3} />
-                    </RadioGroupIndicator>
-                  </RadioGroupItem>
-
-                  <RadioGroupItem value="orange" theme="orange" id="r4">
-                    <RadioGroupIndicator>
-                      <Check color={"white"} width={16} strokeWidth={3} />
-                    </RadioGroupIndicator>
-                  </RadioGroupItem>
-
-                  <RadioGroupItem value="blue" theme="blue" id="r5">
-                    <RadioGroupIndicator>
-                      <Check color={"white"} width={16} strokeWidth={3} />
-                    </RadioGroupIndicator>
-                  </RadioGroupItem>
-
-                  <RadioGroupItem value="pink" theme="pink" id="r6">
-                    <RadioGroupIndicator>
-                      <Check color={"white"} width={16} strokeWidth={3} />
-                    </RadioGroupIndicator>
-                  </RadioGroupItem>
-                </RadioGroupRoot>
-              </Fieldset>
-              <Fieldset disabled={loading} className="Fieldset">
-                <Label className="Label" htmlFor="title">
-                  Name <Required>*</Required>
-                </Label>
-                <Input
-                  className="Input"
-                  name="title"
-                  id="title"
-                  placeholder="e.g. Meta Design System"
-                  onChange={handleChange}
-                  defaultValue={designSystemData.title}
-                  required
-                />
-              </Fieldset>
-              <Fieldset disabled={loading} className="Fieldset">
-                <Label className="Label" htmlFor="description">
-                  Description
-                </Label>
-                <Textarea
-                  className="Input"
-                  name="description"
-                  id="description"
-                  placeholder=""
-                  onChange={handleChange}
-                  defaultValue={designSystemData.description}
-                  maxlength="60"
-                />
-              </Fieldset>
-              <Fieldset disabled={loading} className="Fieldset">
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 4,
-                  }}
-                >
-                  <Label className="Label" htmlFor="figma_file_key">
-                    Figma File Key <Required>*</Required>
-                  </Label>
-                  <FigmaPopoverGuide />
-                </div>
-                <Input
-                  className="Input"
-                  name="figma_file_key"
-                  id="figma_file_key"
-                  placeholder=""
-                  required
-                  onChange={handleChange}
-                  value={designSystemData.figma_file_key}
-                  disabled
-                />
-              </Fieldset>
-              <div
-                style={{
-                  display: "flex",
-                  marginTop: 24,
-                  justifyContent: "flex-end",
-                  gap: 12,
-                }}
+            <Fieldset className="Fieldset">
+              <Label className="Label" htmlFor="radio group">
+                Select a theme
+              </Label>
+              <RadioGroupRoot
+                onValueChange={(value: string) =>
+                  setDesignSystemData({
+                    ...designSystemData,
+                    theme: value,
+                  })
+                }
+                defaultValue={designSystemData.theme}
+                aria-label="Theme Color"
               >
-                <Dialog.Close asChild>
-                  <Button apperance={"ghost"}>Cancel</Button>
-                </Dialog.Close>
+                <RadioGroupItem value="gray" theme="gray" id="r1">
+                  <RadioGroupIndicator>
+                    <Check color={"white"} width={18} strokeWidth={3} />
+                  </RadioGroupIndicator>
+                </RadioGroupItem>
 
-                <Button
-                  type="submit"
-                  css={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    minWidth: 44,
-                    opacity: loading ? 0.5 : 1,
-                  }}
-                >
-                  {loading ? <Spinner /> : "Update"}
+                <RadioGroupItem value="violet" theme="violet" id="r2">
+                  <RadioGroupIndicator>
+                    <Check color={"white"} width={16} strokeWidth={3} />
+                  </RadioGroupIndicator>
+                </RadioGroupItem>
+
+                <RadioGroupItem value="green" theme="green" id="r3">
+                  <RadioGroupIndicator>
+                    <Check color={"white"} width={16} strokeWidth={3} />
+                  </RadioGroupIndicator>
+                </RadioGroupItem>
+
+                <RadioGroupItem value="orange" theme="orange" id="r4">
+                  <RadioGroupIndicator>
+                    <Check color={"white"} width={16} strokeWidth={3} />
+                  </RadioGroupIndicator>
+                </RadioGroupItem>
+
+                <RadioGroupItem value="blue" theme="blue" id="r5">
+                  <RadioGroupIndicator>
+                    <Check color={"white"} width={16} strokeWidth={3} />
+                  </RadioGroupIndicator>
+                </RadioGroupItem>
+
+                <RadioGroupItem value="pink" theme="pink" id="r6">
+                  <RadioGroupIndicator>
+                    <Check color={"white"} width={16} strokeWidth={3} />
+                  </RadioGroupIndicator>
+                </RadioGroupItem>
+              </RadioGroupRoot>
+            </Fieldset>
+            <Fieldset className="Fieldset">
+              <Label className="Label" htmlFor="title">
+                Name
+              </Label>
+              <Input
+                className="Input"
+                name="title"
+                id="title"
+                placeholder="e.g. Meta Design System"
+                defaultValue={designSystemData.title}
+                onChange={handleChange}
+              />
+            </Fieldset>
+            <Fieldset className="Fieldset">
+              <Label className="Label" htmlFor="description">
+                Description
+              </Label>
+              <Textarea
+                className="Input"
+                name="description"
+                id="description"
+                placeholder=""
+                defaultValue={designSystemData.description}
+                onChange={handleChange}
+                maxlength="60"
+              />
+            </Fieldset>
+            <Fieldset className="Fieldset">
+              <Label className="Label" htmlFor="figma_file_key">
+                Figma File Key
+              </Label>
+              <Input
+                className="Input"
+                name="figma_file_key"
+                id="figma_file_key"
+                placeholder=""
+                value={designSystemData.figma_file_key}
+                disabled
+              />
+            </Fieldset>
+            <div
+              style={{
+                display: "flex",
+                marginTop: 25,
+                justifyContent: "flex-end",
+              }}
+            >
+              <Dialog.Close asChild>
+                <Button onClick={updateDesignSystem} className="Button green">
+                  Update
                 </Button>
-              </div>
-            </form>
+              </Dialog.Close>
+            </div>
             <Dialog.Close asChild>
               <IconButton className="IconButton" aria-label="Close">
                 <Cancel />
@@ -253,6 +208,7 @@ const EditDesignSystemDialog = ({ children }: any) => {
 
 export default EditDesignSystemDialog;
 
+// Styles
 const overlayShow = keyframes({
   "0%": { opacity: 0 },
   "100%": { opacity: 1 },
@@ -400,4 +356,39 @@ const IconPreview = styled("div", {
   alignItems: "center",
   justifyContent: "center",
   marginBottom: "$4",
+});
+
+const Button = styled("button", {
+  all: "unset",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  borderRadius: 4,
+  padding: "0 15px",
+  fontSize: 15,
+  lineHeight: 1,
+  fontWeight: 500,
+  height: 35,
+
+  variants: {
+    variant: {
+      violet: {
+        backgroundColor: "white",
+        color: violet.violet11,
+        boxShadow: `0 2px 10px ${blackA.blackA7}`,
+        "&:hover": { backgroundColor: mauve.mauve3 },
+        "&:focus": { boxShadow: `0 0 0 2px black` },
+      },
+      green: {
+        backgroundColor: green.green4,
+        color: green.green11,
+        "&:hover": { backgroundColor: green.green5 },
+        "&:focus": { boxShadow: `0 0 0 2px ${green.green7}` },
+      },
+    },
+  },
+
+  defaultVariants: {
+    variant: "violet",
+  },
 });

@@ -181,6 +181,7 @@ const CreateNewDesignSystemDialog = ({ children }: any) => {
                   id="description"
                   placeholder=""
                   onChange={handleChange}
+                  maxlength="60"
                 />
               </Fieldset>
               <Fieldset disabled={loading} className="Fieldset">

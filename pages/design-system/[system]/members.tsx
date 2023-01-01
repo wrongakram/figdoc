@@ -68,8 +68,8 @@ const Members = ({ data, invites }) => {
           </PageDescription>
         </div>
         <InviteMembersDialog
-          title={data[0].design_system.title}
-          theme={data[0].design_system.theme}
+          title={data[0]?.design_system.title}
+          theme={data[0]?.design_system.theme}
         >
           <Button>Invite</Button>
         </InviteMembersDialog>
