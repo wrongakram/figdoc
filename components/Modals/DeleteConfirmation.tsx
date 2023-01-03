@@ -9,11 +9,12 @@ const DeleteConfirmation = ({
   delFunc,
   description,
   primaryButtonText,
+  children,
 }: any) => (
   <AlertDialog.Root>
     <AlertDialog.Trigger asChild>
       <Flex css={{ width: "100%", height: "100%", alignItems: "center" }}>
-        {primaryButtonText}
+        {children || primaryButtonText}
       </Flex>
     </AlertDialog.Trigger>
     <AlertDialog.Portal>

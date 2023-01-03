@@ -15,6 +15,7 @@ import { Cancel, Check } from "iconoir-react";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import FDAvatar from "../avatar";
 import { useProfileStore } from "../../context/ProfileContext";
+import DeleteConfirmation from "./DeleteConfirmation";
 
 const Profile = ({ children }: any) => {
   const supabaseClient = useSupabaseClient();
@@ -64,6 +65,17 @@ const Profile = ({ children }: any) => {
     router.push("/");
   }
 
+  function deleteAllCookies() {
+    const cookies = document.cookie.split(";");
+
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i];
+      const eqPos = cookie.indexOf("=");
+      const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+      document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    }
+  }
+
   const DELETE_ACCOUNT = async () => {
     try {
       // const { error } = await supabaseClient.auth.signOut();
@@ -76,6 +88,9 @@ const Profile = ({ children }: any) => {
       });
 
       if (error) throw error;
+
+      deleteAllCookies();
+      router.push("/login");
     } catch (error: any) {
       console.log(error);
     }
@@ -152,9 +167,15 @@ const Profile = ({ children }: any) => {
               <Paragraph css={{ padding: "4px 0 12px 0" }}>
                 Once any of the changes below are made we cannot undo them.
               </Paragraph>
-              <Button danger onClick={DELETE_ACCOUNT}>
-                Delete account
-              </Button>
+
+              <DeleteConfirmation
+                title={`Delete account?`}
+                description={`Are you sure you want to delete your account? This action cannot be undone.`}
+                delFunc={DELETE_ACCOUNT}
+                primaryButtonText="Delete"
+              >
+                <Button danger>Delete account</Button>
+              </DeleteConfirmation>
             </div>
             <Dialog.Close asChild>
               <IconButton className="IconButton" aria-label="Close">

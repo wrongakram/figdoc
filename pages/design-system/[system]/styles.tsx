@@ -36,6 +36,7 @@ import { FDComponentCard } from "../../../components/ComponentCards";
 import { useProfileStore } from "../../../context/ProfileContext";
 import Layout from "../../../components/Layout";
 import StylesTable from "../../../components/StylesTable";
+import Profile from "../../../components/Modals/Profile";
 
 export const getServerSideProps: GetServerSideProps = async (
   ctx: GetServerSidePropsContext
@@ -125,7 +126,18 @@ const Styles = ({ data }: DesignSystemData) => {
           </PageDescription>
         </div>
       </PageHeader>
-      {styles.meta?.styles.length === 0 ? (
+
+      {styles.status === 403 ? (
+        <EmptyState>
+          <h3>Invalid Figma Token</h3>
+          <p>
+            Ensure the Figma Token added within your profile is valid.{" "}
+            <Profile>
+              <span style={{ display: "inline-block" }}>Add Figma Token</span>
+            </Profile>
+          </p>
+        </EmptyState>
+      ) : styles.meta?.styles.length === 0 ? (
         <EmptyState>
           <h3>No styles found</h3>
           <p>
@@ -148,11 +160,9 @@ const Styles = ({ data }: DesignSystemData) => {
             <TextTab data={styles} />
           </TabsContent>
           <TabsContent value="tab3">
-            {" "}
             <EffectsTab data={styles} />
           </TabsContent>
           <TabsContent value="tab4">
-            {" "}
             <GridsTab data={styles} />
           </TabsContent>
         </TabsRoot>

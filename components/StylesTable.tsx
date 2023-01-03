@@ -63,7 +63,7 @@ export default function StylesTable({ styles, preview }) {
           <div style={{ width: 40, height: 40, position: "relative" }}>
             <Image
               src={info.renderValue()}
-              alt="Figma Token"
+              alt="preview"
               fill
               quality={100}
               layout="fill"
