@@ -17,7 +17,7 @@ import { useState, createContext } from "react";
 import { SWRConfig } from "swr";
 
 // Context
-import ToastContext from "../context/ToastContext";
+import ToastContext, { ToastProvider } from "../context/ToastContext";
 import { ProfileProvider } from "../context/ProfileContext";
 
 // Tooltip
@@ -42,8 +42,6 @@ export default function App({ Component, pageProps }: AppPropsWithLayout) {
   const [supabaseClient] = useState(() => createBrowserSupabaseClient());
   // Multiple Layouts
 
-  const [createDesignSystemToast, setCreateDesignSystemToast] = useState(false);
-
   return (
     <SessionContextProvider
       supabaseClient={supabaseClient}
@@ -52,9 +50,7 @@ export default function App({ Component, pageProps }: AppPropsWithLayout) {
       <ProfileProvider>
         <Tooltip.Provider delayDuration={250} skipDelayDuration={600}>
           <Toast.Provider swipeDirection="right">
-            <ToastContext.Provider
-              value={{ createDesignSystemToast, setCreateDesignSystemToast }}
-            >
+            <ToastProvider>
               <IconoirProvider
                 iconProps={{
                   color: "$gray11",
@@ -78,7 +74,7 @@ export default function App({ Component, pageProps }: AppPropsWithLayout) {
                   </ThemeProvider>
                 </SWRConfig>
               </IconoirProvider>
-            </ToastContext.Provider>
+            </ToastProvider>
           </Toast.Provider>
         </Tooltip.Provider>
       </ProfileProvider>

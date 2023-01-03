@@ -85,7 +85,6 @@ const Home = ({ user, data }: { user: User; data: DesignSystemData }) => {
     setLoading(false);
   }, [data, user]);
 
-  const context = useContext(ToastContext);
   return (
     <Page>
       <PageHeader>

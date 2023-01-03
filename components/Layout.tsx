@@ -9,7 +9,7 @@ import { useRouter } from "next/router";
 
 import { styled } from "../stitches.config";
 import FDToast from "./FDToast";
-import ToastContext from "../context/ToastContext";
+import ToastContext, { useToastStore } from "../context/ToastContext";
 import { useProfileStore } from "../context/ProfileContext";
 import { WarningCircledOutline } from "iconoir-react";
 import Profile from "./Modals/Profile";
@@ -48,14 +48,15 @@ export default function Layout({ children }) {
   const supabaseClient = useSupabaseClient();
   const user = useUser();
 
-  const context = useContext(ToastContext);
   const { data } = useProfileStore();
+  const { createDesignSystemToast, setCreateDesignSystemToast } =
+    useToastStore();
 
   useEffect(() => {
     setTimeout(() => {
-      context.setCreateDesignSystemToast(false);
+      setCreateDesignSystemToast(false);
     }, 3000);
-  }, [context]);
+  }, [setCreateDesignSystemToast]);
 
   if (!user)
     return (
@@ -76,7 +77,7 @@ export default function Layout({ children }) {
       </SidebarFlex>
 
       <Flex>
-        {data?.figma_token === "" && (
+        {data?.figma_token === "" || data?.figma_token === null ? (
           <Banner>
             <WarningCircledOutline /> Please add a Figma Token to gain access to
             all features.
@@ -84,12 +85,12 @@ export default function Layout({ children }) {
               <button>Add Figma Token</button>
             </Profile>
           </Banner>
-        )}
+        ) : null}
         <Main>{children}</Main>
       </Flex>
       <FDToast
-        open={context.createDesignSystemToast}
-        onOpenChange={context.setCreateDesignSystemToast}
+        open={createDesignSystemToast}
+        onOpenChange={setCreateDesignSystemToast}
         title="Design System Created!"
         content="We've just released Radix 3.0!"
       />

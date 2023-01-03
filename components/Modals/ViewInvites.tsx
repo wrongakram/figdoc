@@ -40,7 +40,6 @@ const ViewInvitesDialog = ({ children, data }: any) => {
   const supabaseClient = useSupabaseClient();
   const user = useUser();
   const router = useRouter();
-  const context = useContext(ToastContext);
 
   const { mutate } = useSWRConfig();
 

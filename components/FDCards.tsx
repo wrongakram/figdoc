@@ -259,7 +259,7 @@ const DesignSystemCardDropdown = ({
         </DropdownMenuItem>
 
         <DropdownMenuGroup>
-          {owner == user?.id && (
+          {owner == user?.id ? (
             <>
               <DropdownMenuSeparator></DropdownMenuSeparator>
               <DropdownMenuItem onClick={(e) => e.preventDefault()} destructive>
@@ -272,22 +272,21 @@ const DesignSystemCardDropdown = ({
                 />
               </DropdownMenuItem>
             </>
+          ) : (
+            <>
+              <DropdownMenuSeparator></DropdownMenuSeparator>
+              <DropdownMenuItem onClick={(e) => e.preventDefault()} destructive>
+                <DeleteConfirmation
+                  title={`Leave ${title}?`}
+                  titleHighlight={title}
+                  description={`This will remove you from the ${title} Design System. You will no longer be able to access it.`}
+                  delFunc={LEAVE_DESIGN_SYSTEM}
+                  primaryButtonText="Leave"
+                />
+              </DropdownMenuItem>
+            </>
           )}
         </DropdownMenuGroup>
-        {owner != user?.id && (
-          <>
-            <DropdownMenuSeparator></DropdownMenuSeparator>
-            <DropdownMenuItem onClick={(e) => e.preventDefault()} destructive>
-              <DeleteConfirmation
-                title={`Leave ${title}?`}
-                titleHighlight={title}
-                description={`This will remove you from the ${title} Design System. You will no longer be able to access it.`}
-                delFunc={LEAVE_DESIGN_SYSTEM}
-                primaryButtonText="Leave"
-              />
-            </DropdownMenuItem>
-          </>
-        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

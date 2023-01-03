@@ -5,7 +5,6 @@ import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 import Skeleton from "react-loading-skeleton";
 import "react-loading-skeleton/dist/skeleton.css";
-import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { violet, mauve, red } from "@radix-ui/colors";
 
 import { useRouter } from "next/router";
@@ -31,6 +30,22 @@ import { capitalizeFirstLetter } from "../utils/functions/capitalizeFirstLetter"
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 import _ from "lodash";
 import { Flex } from "./primitives/structure";
+import moment from "moment";
+import DeleteConfirmation from "./Modals/DeleteConfirmation";
+
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuItem,
+  DropdownMenuGroup,
+  DropdownMenuSeparator,
+  DropdownMenuItemStale,
+  RightSlot,
+  DropdownMenuItemButton,
+} from "./DropdownMenu";
+import CreateComponent from "./Modals/CreateComponent";
 
 const Button = styled("button", {
   height: "36px",
@@ -357,9 +372,11 @@ const ComponentsList = ({}) => {
       <SidebarSection>
         <Subheader>
           Components ({components.length})
-          <Button small>
-            <Plus />
-          </Button>
+          <CreateComponent>
+            <Button small>
+              <Plus />
+            </Button>
+          </CreateComponent>
         </Subheader>
       </SidebarSection>
 
@@ -430,14 +447,15 @@ const FDDropDown = ({ id, ds, system, children }: any) => {
   const router = useRouter();
   const supabaseClient = useSupabaseClient();
   const { mutate } = useSWRConfig();
+  const user = useUser();
 
-  const deleteDesignSystem = async () => {
+  const LEAVE_DESIGN_SYSTEM = async () => {
     try {
-      // Delete Design System
+      // Delete Member
       const { error } = await supabaseClient
-        .from("design_system")
+        .from("members")
         .delete()
-        .eq("id", system);
+        .eq("user_id", user?.id);
 
       mutate(`/api/design-systems/getAllDesignSystems`);
       router.push(`/`);
@@ -450,36 +468,83 @@ const FDDropDown = ({ id, ds, system, children }: any) => {
       console.log(error);
     }
   };
+
+  const DELETE_DESIGN_SYSTEM = async () => {
+    try {
+      // Delete Design System
+      const { error } = await supabaseClient
+        .from("design_system")
+        .delete()
+        .eq("id", ds?.id);
+
+      mutate(`/api/design-systems/getAllDesignSystems`);
+      router.push(`/`);
+
+      if (error)
+        throw {
+          error,
+        };
+    } catch (error: any) {
+      console.log(error);
+    }
+  };
+
+  const goToFigmaFile = (e: React.MouseEvent, figmaFileKey: string) => {
+    e.preventDefault();
+    window.location = `https://www.figma.com/file/${figmaFileKey}/`;
+  };
+
   return (
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger asChild>{children}</DropdownMenu.Trigger>
-      <DropdownMenu.Portal>
-        <DropdownMenuContent>
-          <EditDesignSystemDialog>
-            <DropdownMenuItemStale>
-              Edit<RightSlot>⌘+E</RightSlot>
-            </DropdownMenuItemStale>
-          </EditDesignSystemDialog>
-
-          <DropdownMenuItem>
-            View Figma
-            <RightSlot>
-              <OpenNewWindow width={14} />
-            </RightSlot>
-          </DropdownMenuItem>
-
-          <DropdownMenuSeparator />
-          <DropdownDescription>
-            <small>Created by: {ds?.created_by}</small>
-            <small>Created at: {ds?.created_at}</small>{" "}
-          </DropdownDescription>
-          <DropdownMenuSeparator />
-          <DropdownMenuItemDestructive onClick={deleteDesignSystem}>
-            Delete <RightSlot destructive>⌘+del</RightSlot>
-          </DropdownMenuItemDestructive>
-        </DropdownMenuContent>
-      </DropdownMenu.Portal>
-    </DropdownMenu.Root>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>{children}</DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <EditDesignSystemDialog>
+          <DropdownMenuItemStale>
+            Edit<RightSlot>⌘+E</RightSlot>
+          </DropdownMenuItemStale>
+        </EditDesignSystemDialog>
+        <DropdownMenuItem onClick={(e) => goToFigmaFile(e, ds?.figmaFileKey)}>
+          Go to Figma
+          <RightSlot>
+            <OpenNewWindow width={14} />
+          </RightSlot>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownDescription>
+          <small>Created by: {ds?.created_by_email}</small>
+          <small>
+            Created on: {moment(ds?.created_at).add(24, "hours").format("LLL")}
+          </small>
+        </DropdownDescription>{" "}
+        {ds?.created_by == user?.id ? (
+          <>
+            <DropdownMenuSeparator></DropdownMenuSeparator>
+            <DropdownMenuItem onClick={(e) => e.preventDefault()} destructive>
+              <DeleteConfirmation
+                title={`Delete ${ds?.title}?`}
+                titleHighlight={ds?.title}
+                description={`This will delete the ${ds?.title} Design System and all of its components. This action cannot be undone.`}
+                delFunc={DELETE_DESIGN_SYSTEM}
+                primaryButtonText="Delete"
+              />
+            </DropdownMenuItem>
+          </>
+        ) : (
+          <>
+            <DropdownMenuSeparator></DropdownMenuSeparator>
+            <DropdownMenuItem onClick={(e) => e.preventDefault()} destructive>
+              <DeleteConfirmation
+                title={`Leave ${ds?.title}?`}
+                titleHighlight={ds?.title}
+                description={`This will remove you from the ${ds?.title} Design System. You will no longer be able to access it.`}
+                delFunc={LEAVE_DESIGN_SYSTEM}
+                primaryButtonText="Leave"
+              />
+            </DropdownMenuItem>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 };
 
@@ -492,114 +557,24 @@ const SearchMessage = styled("span", {
   width: "100%",
 });
 
-const slideUpAndFade = keyframes({
-  "0%": { opacity: 0, transform: "translateY(2px)" },
-  "100%": { opacity: 1, transform: "translateY(0)" },
-});
+// const DropdownMenuSeparator = styled(DropdownMenu.Separator, {
+//   height: 1,
+//   backgroundColor: "$gray4",
+//   margin: 6,
+// });
 
-const slideRightAndFade = keyframes({
-  "0%": { opacity: 0, transform: "translateX(-2px)" },
-  "100%": { opacity: 1, transform: "translateX(0)" },
-});
-
-const slideDownAndFade = keyframes({
-  "0%": { opacity: 0, transform: "translateY(-2px)" },
-  "100%": { opacity: 1, transform: "translateY(0)" },
-});
-
-const slideLeftAndFade = keyframes({
-  "0%": { opacity: 0, transform: "translateX(2px)" },
-  "100%": { opacity: 1, transform: "translateX(0)" },
-});
-
-const contentStyles = {
-  minWidth: 240,
-  border: "1px solid $gray5",
-  backgroundColor: "white",
-  borderRadius: 6,
-  padding: 6,
-  boxShadow:
-    "0px 10px 38px -10px rgba(22, 23, 24, 0.35), 0px 10px 20px -15px rgba(22, 23, 24, 0.2)",
-  animationDuration: "400ms",
-  animationTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
-  willChange: "transform, opacity",
-  '&[data-state="open"]': {
-    '&[data-side="top"]': { animationName: slideDownAndFade },
-    '&[data-side="right"]': { animationName: slideLeftAndFade },
-    '&[data-side="bottom"]': { animationName: slideUpAndFade },
-    '&[data-side="left"]': { animationName: slideRightAndFade },
-  },
-};
-
-const DropdownMenuContent = styled(DropdownMenu.Content, contentStyles);
-
-const itemStyles = {
-  all: "unset",
-  fontSize: 14,
-  lineHeight: 1,
-  color: "$gray12",
-  borderRadius: 4,
-  display: "flex",
-  alignItems: "center",
-  height: 36,
-  padding: "0 4px",
-  position: "relative",
-  paddingLeft: 8,
-  userSelect: "none",
-  cursor: "pointer",
-
-  "&[data-disabled]": {
-    color: mauve.mauve8,
-    pointerEvents: "none",
-  },
-
-  "&[data-highlighted]": {
-    backgroundColor: "$gray4",
-    color: "$gray12",
-  },
-};
-
-const DropdownMenuItem = styled(DropdownMenu.Item, itemStyles);
-const DropdownMenuItemStale = styled("div", itemStyles, {
-  "&:hover": {
-    backgroundColor: "$gray4",
-    color: "$gray12",
-  },
-});
-const DropdownMenuItemDestructive = styled(DropdownMenu.Item, {
-  ...itemStyles,
-  color: red.red11,
-
-  "&[data-highlighted]": {
-    backgroundColor: red.red3,
-  },
-});
-
-const DropdownMenuLabel = styled(DropdownMenu.Label, {
-  paddingLeft: 25,
-  fontSize: 12,
-  lineHeight: "25px",
-  color: mauve.mauve11,
-});
-
-const DropdownMenuSeparator = styled(DropdownMenu.Separator, {
-  height: 1,
-  backgroundColor: "$gray4",
-  margin: 6,
-});
-
-const RightSlot = styled("div", {
-  marginLeft: "auto",
-  paddingLeft: 16,
-  paddingRight: 4,
-  color: "$gray11",
-  fontSize: "12px",
-  variants: {
-    destructive: {
-      true: { color: red.red11 },
-    },
-  },
-});
+// const RightSlot = styled("div", {
+//   marginLeft: "auto",
+//   paddingLeft: 16,
+//   paddingRight: 4,
+//   color: "$gray11",
+//   fontSize: "12px",
+//   variants: {
+//     destructive: {
+//       true: { color: red.red11 },
+//     },
+//   },
+// });
 
 const DropdownDescription = styled("div", {
   padding: 8,

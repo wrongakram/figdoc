@@ -16,7 +16,6 @@ import { Cancel, Check } from "iconoir-react";
 import { useSWRConfig } from "swr";
 
 // Context
-import ToastContext from "../../context/ToastContext";
 
 // Radix
 import * as RadioGroup from "@radix-ui/react-radio-group";
@@ -35,11 +34,13 @@ import Spinner from "../Spinner";
 import FigmaPopoverGuide from "../FigmaPopoverGuide";
 import { Button } from "../FDButton";
 import FDSystemIcon from "../FDSystemIcon";
+import { useToastStore } from "../../context/ToastContext";
 
 const InviteMembersDialog = ({ children, title, theme }: any) => {
   const user = useUser();
   const router = useRouter();
-  const context = useContext(ToastContext);
+  const { createDesignSystemToast, setCreateDesignSystemToast } =
+    useToastStore();
   const { system } = router.query;
   const supabaseClient = useSupabaseClient();
 
@@ -78,7 +79,7 @@ const InviteMembersDialog = ({ children, title, theme }: any) => {
       setOpen(false);
       setLoading(false);
       setMemberData(initialState);
-      context.setCreateDesignSystemToast(true);
+      setCreateDesignSystemToast(true);
 
       router.reload();
 
