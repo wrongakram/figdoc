@@ -107,7 +107,7 @@ const EditDesignSystemDialog = ({ children }: any) => {
       <Dialog.Portal>
         <DialogOverlay className="DialogOverlay" />
         <DialogContent className="DialogContent">
-          <DialogTitle className="DialogTitle">New Design System</DialogTitle>
+          <DialogTitle className="DialogTitle">Edit Design System</DialogTitle>
           <div className="inner">
             <IconPreview>
               <FDSystemIcon theme={designSystemData.theme} size="large" />
@@ -210,7 +210,7 @@ const EditDesignSystemDialog = ({ children }: any) => {
                   required
                   onChange={handleChange}
                   value={designSystemData.figma_file_key}
-                  disabled
+                  disabled={loading}
                 />
               </Fieldset>
               <div

@@ -11,7 +11,7 @@ import { createBrowserSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { SessionContextProvider } from "@supabase/auth-helpers-react";
 
 // React
-import { useState, createContext } from "react";
+import { useState } from "react";
 
 // SWR
 import { SWRConfig } from "swr";

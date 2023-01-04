@@ -30,13 +30,19 @@ import * as Tabs from "@radix-ui/react-tabs";
 import Link from "next/link";
 
 // Icons
-import { Plus, Puzzle } from "iconoir-react";
+import {
+  ArrowRight,
+  Plus,
+  Puzzle,
+  WarningTriangleOutline,
+} from "iconoir-react";
 import { styled } from "@stitches/react";
 import { FDComponentCard } from "../../../components/ComponentCards";
 import { useProfileStore } from "../../../context/ProfileContext";
 import Layout from "../../../components/Layout";
 import StylesTable from "../../../components/StylesTable";
 import Profile from "../../../components/Modals/Profile";
+import EditDesignSystemDialog from "../../../components/Modals/EditDesignSystem";
 
 export const getServerSideProps: GetServerSideProps = async (
   ctx: GetServerSidePropsContext
@@ -141,8 +147,21 @@ const Styles = ({ data }: DesignSystemData) => {
         <EmptyState>
           <h3>No styles found</h3>
           <p>
-            Looks like there arent any styles within the linked Figma File{" "}
+            Looks like there arent any styles within the linked Figma File.{" "}
             <span>Learn more</span>
+          </p>
+        </EmptyState>
+      ) : styles.status === 404 ? (
+        <EmptyState>
+          <div className="svg-container">
+            <WarningTriangleOutline />
+          </div>
+          <h3>Couldn&apos;t retrieve your figma file </h3>
+          <p>
+            Check to make sure you entered the correct
+            <EditDesignSystemDialog>
+              <span>file key</span>
+            </EditDesignSystemDialog>
           </p>
         </EmptyState>
       ) : (
@@ -292,7 +311,7 @@ const EmptyState = styled("div", {
   justifyContent: "center",
   textAlign: "center",
   width: 560,
-  height: 320,
+  height: "calc(100vh - 208px)",
   margin: "0 auto",
 
   ".svg-container": {
@@ -309,7 +328,7 @@ const EmptyState = styled("div", {
     },
   },
   h3: {
-    fontSize: "$5",
+    fontSize: "$4",
     fontWeight: 600,
     color: "$gray12",
     marginTop: "$4",
@@ -318,7 +337,7 @@ const EmptyState = styled("div", {
   p: {
     fontSize: "$3",
     color: "$gray11",
-    marginTop: "$2",
+    marginTop: "$1",
     span: {
       cursor: "pointer",
       color: "$gray12",

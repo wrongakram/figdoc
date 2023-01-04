@@ -75,16 +75,16 @@ export default function Layout({ children }) {
       </SidebarFlex>
       <Flex>
         {data?.figma_token === "" ||
-          data?.figma_token === null ||
-          (data?.figma_token === undefined && (
-            <Banner>
-              <WarningCircledOutline /> Please add a Figma Token to gain access
-              to all features.
-              <Profile>
-                <button>Add Figma Token</button>
-              </Profile>
-            </Banner>
-          ))}
+        data?.figma_token === null ||
+        data?.figma_token === undefined ? (
+          <Banner>
+            <WarningCircledOutline /> Please add a Figma Token to gain access to
+            all features.
+            <Profile>
+              <button>Add Figma Token</button>
+            </Profile>
+          </Banner>
+        ) : null}
         <Main>{children}</Main>
       </Flex>
       <FDToast

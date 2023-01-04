@@ -264,16 +264,9 @@ const SidebarComponents = ({ designSystemName }) => {
           <div className="content">
             <>
               <h4>{ds?.title}</h4>
-              {ds?.figma_file_key ? (
-                <span>{ds?.figma_file_key}</span>
-              ) : (
-                <span>
-                  Connect Figma File <Circle />
-                </span>
-              )}
+              <span>{ds?.figma_file_key}</span>
             </>
           </div>
-
           <NavArrowDown />
         </SidebarHeader>
       </FDDropDown>
