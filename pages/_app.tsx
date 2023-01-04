@@ -17,7 +17,7 @@ import { useState, createContext } from "react";
 import { SWRConfig } from "swr";
 
 // Context
-import ToastContext, { ToastProvider } from "../context/ToastContext";
+import { ToastProvider } from "../context/ToastContext";
 import { ProfileProvider } from "../context/ProfileContext";
 
 // Tooltip

@@ -9,7 +9,7 @@ import { useRouter } from "next/router";
 
 import { styled } from "../stitches.config";
 import FDToast from "./FDToast";
-import ToastContext, { useToastStore } from "../context/ToastContext";
+import { useToastStore } from "../context/ToastContext";
 import { useProfileStore } from "../context/ProfileContext";
 import { WarningCircledOutline } from "iconoir-react";
 import Profile from "./Modals/Profile";
@@ -44,12 +44,10 @@ export default function Layout({ children }) {
 
   const router = useRouter();
   const path = router.asPath;
-
-  const supabaseClient = useSupabaseClient();
   const user = useUser();
 
-  const { data } = useProfileStore();
-  const { createDesignSystemToast, setCreateDesignSystemToast } =
+  const { data }: any = useProfileStore();
+  const { createDesignSystemToast, setCreateDesignSystemToast }: any =
     useToastStore();
 
   useEffect(() => {
@@ -75,17 +73,18 @@ export default function Layout({ children }) {
           <SidebarComponents designSystemName={designSystemName} />
         ) : null}
       </SidebarFlex>
-
       <Flex>
-        {data?.figma_token === "" || data?.figma_token === null ? (
-          <Banner>
-            <WarningCircledOutline /> Please add a Figma Token to gain access to
-            all features.
-            <Profile>
-              <button>Add Figma Token</button>
-            </Profile>
-          </Banner>
-        ) : null}
+        {data?.figma_token === "" ||
+          data?.figma_token === null ||
+          (data?.figma_token === undefined && (
+            <Banner>
+              <WarningCircledOutline /> Please add a Figma Token to gain access
+              to all features.
+              <Profile>
+                <button>Add Figma Token</button>
+              </Profile>
+            </Banner>
+          ))}
         <Main>{children}</Main>
       </Flex>
       <FDToast
