@@ -46,8 +46,10 @@ const ComponentDropdown = ({ children, data }) => {
 
   const goToFigmaFile = (e: React.MouseEvent, figmaDetails: string) => {
     e.preventDefault();
-    window.location = `https://www.figma.com/file/${figmaDetails}`;
+    window.open(`https://www.figma.com/file/${figmaDetails}`, "_blank");
   };
+
+  console.log(data);
 
   return (
     <DropdownMenu>
@@ -100,11 +102,12 @@ const Navbar = ({ data, setShowFigmaProps, showFigmaProps }: any) => {
 };
 
 const NavContainer = styled("div", {
-  height: 64,
+  height: 56,
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
-  padding: "0 24px",
+  padding: "0 16px",
+  borderBottom: "1px solid $gray3",
 });
 
 const Breadcrumb = styled("div", {

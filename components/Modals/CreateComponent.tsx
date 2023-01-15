@@ -14,6 +14,15 @@ import { gray } from "@radix-ui/colors/types/dark/gray";
 import { Cancel, Check } from "iconoir-react";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 
+import {
+  Input,
+  Textarea,
+  Label,
+  Fieldset,
+  Required,
+} from "../primitives/forms";
+import { Button } from "../FDButton";
+
 const CreateComponent = ({ children }: any) => {
   const supabaseClient = useSupabaseClient();
   const user = useUser();
@@ -97,6 +106,7 @@ const CreateComponent = ({ children }: any) => {
                 id="title"
                 placeholder="e.g. Button"
                 onChange={handleChange}
+                required
               />
             </Fieldset>
             <Fieldset className="Fieldset">
@@ -170,7 +180,7 @@ const DialogOverlay = styled(Dialog.Overlay, {
 
 const DialogContent = styled(Dialog.Content, {
   backgroundColor: "$gray1",
-  borderRadius: 6,
+  borderRadius: 12,
   boxShadow:
     "hsl(206 22% 7% / 35%) 0px 10px 38px -10px, hsl(206 22% 7% / 20%) 0px 10px 20px -15px",
   position: "fixed",
@@ -185,64 +195,18 @@ const DialogContent = styled(Dialog.Content, {
   "&:focus": { outline: "none" },
 
   ".inner": {
-    padding: 16,
+    padding: "4px 20px 20px 20px",
   },
 });
 
 const DialogTitle = styled(Dialog.Title, {
   fontWeight: 700,
   color: "$gray12",
-  fontSize: 16,
-  height: 56,
+  fontSize: "$3",
+  height: 64,
   display: "flex",
   alignItems: "center",
-
-  padding: "16px",
-  borderBottom: "1px soild $gray6",
-});
-
-const DialogDescription = styled(Dialog.Description, {
-  margin: "0 0 24px",
-  color: "$gray11",
-  fontSize: 14,
-  lineHeight: 1.5,
-});
-
-const Flex = styled("div", { display: "flex" });
-
-const Button = styled("button", {
-  all: "unset",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  borderRadius: 4,
-  padding: "0 15px",
-  fontSize: 15,
-  lineHeight: 1,
-  fontWeight: 500,
-  height: 35,
-
-  variants: {
-    variant: {
-      violet: {
-        backgroundColor: "white",
-        color: violet.violet11,
-        boxShadow: `0 2px 10px ${blackA.blackA7}`,
-        "&:hover": { backgroundColor: mauve.mauve3 },
-        "&:focus": { boxShadow: `0 0 0 2px black` },
-      },
-      green: {
-        backgroundColor: green.green4,
-        color: green.green11,
-        "&:hover": { backgroundColor: green.green5 },
-        "&:focus": { boxShadow: `0 0 0 2px ${green.green7}` },
-      },
-    },
-  },
-
-  defaultVariants: {
-    variant: "violet",
-  },
+  padding: 20,
 });
 
 const IconButton = styled("button", {
@@ -256,118 +220,9 @@ const IconButton = styled("button", {
   justifyContent: "center",
   color: "$gray11",
   position: "absolute",
-  top: 12,
-  right: 12,
+  top: 16,
+  right: 16,
 
   "&:hover": { backgroundColor: "$gray3" },
   "&:focus": { boxShadow: `0 0 0 2px ${violet.violet7}` },
-});
-
-const Fieldset = styled("fieldset", {
-  all: "unset",
-  display: "flex",
-  flexDirection: "column",
-  gap: 4,
-  marginBottom: 15,
-  boxSizing: "border-box",
-});
-
-const Label = styled("label", {
-  fontSize: 14,
-  fontWeight: "500",
-  display: "inline",
-  color: "$gray11",
-});
-
-const Input = styled("input", {
-  all: "unset",
-  width: "100%",
-  flex: "1",
-  alignItems: "center",
-  justifyContent: "center",
-  borderRadius: 6,
-  padding: "10px 12px",
-  fontSize: 14,
-  lineHeight: 1,
-  color: "$gray12",
-  border: "1px solid $gray7",
-  boxSizing: "border-box",
-
-  "&::placeholder": {
-    color: "$gray9",
-  },
-
-  "&:focus": {
-    boxShadow: `0 0 0 2px ${violet.violet8}`,
-    border: "1px solid transparent",
-  },
-});
-
-const RadioGroupRoot = styled(RadioGroup.Root, {
-  display: "flex",
-  gap: 8,
-});
-
-const RadioGroupItem = styled(RadioGroup.Item, {
-  all: "unset",
-  width: 28,
-  height: 28,
-  borderRadius: "100%",
-  border: "solid 2px $gray1",
-  '&[data-state="unchecked"]': {},
-
-  '&[data-state="checked"]': {
-    boxShadow: `0 0 0px 2px black`,
-  },
-
-  //   "&:hover": { backgroundColor: violet.violet3 },
-  "&:focus": { boxShadow: `0 0 0 2px black` },
-  variants: {
-    theme: {
-      gray: {
-        background: "$gray9",
-      },
-      green: {
-        background: "$green9",
-      },
-      violet: {
-        background: "$violet9",
-      },
-      orange: {
-        background: "$orange9",
-      },
-      blue: {
-        background: "$blue9",
-      },
-      pink: {
-        background: "$pink9",
-      },
-    },
-  },
-});
-
-const RadioGroupIndicator = styled(RadioGroup.Indicator, {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  width: "100%",
-  height: "100%",
-  position: "relative",
-
-  variants: {
-    theme: {
-      gray: {
-        background: "$gray4",
-        color: "$gray12",
-      },
-      green: {
-        background: "$green4",
-        color: "$green12",
-      },
-      violet: {
-        background: "$violet4",
-        color: "$violet12",
-      },
-    },
-  },
 });

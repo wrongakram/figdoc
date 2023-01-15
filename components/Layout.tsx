@@ -41,6 +41,7 @@ const SidebarFlex = styled("div", {
 
 export default function Layout({ children }) {
   const [designSystemName, setDesignSystemName] = useState([]);
+  const [showBanner, setShowBanner] = useState(false);
 
   const router = useRouter();
   const path = router.asPath;
@@ -55,6 +56,18 @@ export default function Layout({ children }) {
       setCreateDesignSystemToast(false);
     }, 3000);
   }, [setCreateDesignSystemToast]);
+
+  useEffect(() => {
+    if (data) {
+      if (
+        data?.figma_token == "" ||
+        data?.figma_token == null ||
+        data?.figma_token == "undefined"
+      ) {
+        setShowBanner(true);
+      }
+    }
+  }, [data]);
 
   if (!user)
     return (
@@ -74,9 +87,7 @@ export default function Layout({ children }) {
         ) : null}
       </SidebarFlex>
       <Flex>
-        {data?.figma_token === "" ||
-        data?.figma_token === null ||
-        data?.figma_token === undefined ? (
+        {showBanner && (
           <Banner>
             <WarningCircledOutline /> Please add a Figma Token to gain access to
             all features.
@@ -84,7 +95,7 @@ export default function Layout({ children }) {
               <button>Add Figma Token</button>
             </Profile>
           </Banner>
-        ) : null}
+        )}
         <Main>{children}</Main>
       </Flex>
       <FDToast

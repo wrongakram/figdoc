@@ -239,7 +239,7 @@ const DesignSystemCardDropdown = ({
 
   const goToFigmaFile = (e: React.MouseEvent, figmaFileKey: string) => {
     e.preventDefault();
-    window.location = `https://www.figma.com/file/${figmaFileKey}/`;
+    window.open(`https://www.figma.com/file/${figmaFileKey}`, "_blank");
   };
 
   return (

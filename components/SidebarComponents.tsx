@@ -78,8 +78,8 @@ const Button = styled("button", {
 });
 
 const SidebarMain = styled("div", {
-  borderRight: "1px solid $gray4",
-  backgroundColor: "$gray1",
+  borderRight: "1px solid $gray3",
+
   color: "$gray12",
   left: 0,
   width: "228px",
@@ -87,7 +87,7 @@ const SidebarMain = styled("div", {
 });
 
 const SidebarHeader = styled("div", {
-  height: "64px",
+  height: 56,
   display: "flex",
   alignItems: "center",
   justifyContent: "space-between",
@@ -95,7 +95,8 @@ const SidebarHeader = styled("div", {
   fontSize: "14px",
   gap: 12,
   cursor: "pointer",
-
+  borderBottom: "1px solid $gray3",
+  marginBottom: 8,
   svg: {
     color: "$gray11",
   },
@@ -115,6 +116,7 @@ const SidebarHeader = styled("div", {
     whiteSpace: "nowrap",
     overflow: "hidden",
     textOverflow: "ellipsis",
+    fontSize: 14,
   },
 
   span: {
@@ -144,13 +146,6 @@ const Divider = styled("div", {
 const SidebarSection = styled("div", {
   height: "auto",
   padding: "0 8px",
-});
-
-const Circle = styled("div", {
-  height: 6,
-  width: 6,
-  borderRadius: "100%",
-  backgroundColor: "$blue9",
 });
 
 const NavMenuList = styled(NavigationMenu.List, {
@@ -232,7 +227,7 @@ const Input = styled("input", {
   height: 36,
   backgroundColor: "$gray3",
   boxSizing: "border-box",
-  border: "solid 1px $gray5",
+  border: "solid 1px $gray3",
 
   "&::placeholder": {
     color: "$gray10",
@@ -270,7 +265,6 @@ const SidebarComponents = ({ designSystemName }) => {
           <NavArrowDown />
         </SidebarHeader>
       </FDDropDown>
-
       <SidebarSection>
         <NavigationMenu.Root>
           <NavMenuList>
@@ -316,7 +310,6 @@ const SidebarComponents = ({ designSystemName }) => {
         </NavigationMenu.Root>
       </SidebarSection>
       <Divider />
-
       <ComponentsList />
       <SidebarFooter></SidebarFooter>
     </SidebarMain>
@@ -325,7 +318,7 @@ const SidebarComponents = ({ designSystemName }) => {
 
 export default SidebarComponents;
 
-const ComponentsList = ({}) => {
+const ComponentsList = () => {
   const router = useRouter();
   const { system, component } = router.query;
 
@@ -484,7 +477,7 @@ const FDDropDown = ({ id, ds, system, children }: any) => {
 
   const goToFigmaFile = (e: React.MouseEvent, figmaFileKey: string) => {
     e.preventDefault();
-    window.location = `https://www.figma.com/file/${figmaFileKey}/`;
+    window.open(`https://www.figma.com/file/${figmaFileKey}`, "_blank");
   };
 
   return (

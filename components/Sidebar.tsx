@@ -56,8 +56,7 @@ const Button = styled("button", {
 });
 
 const SidebarMain = styled("div", {
-  backgroundColor: "$gray1",
-  borderRight: "1px solid $gray4",
+  borderRight: "1px solid $gray3",
   color: "$gray12",
   left: 0,
   width: "60px",
@@ -68,12 +67,14 @@ const SidebarMain = styled("div", {
 });
 
 const SidebarHeader = styled("div", {
-  height: "64px",
+  height: 56,
   display: "flex",
   alignItems: "center",
   justifyContent: "center",
   padding: "0 16px",
   fontSize: "16px",
+
+  marginBottom: 8,
 });
 
 const Logo = styled("div", {
